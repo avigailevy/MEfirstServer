@@ -29,7 +29,21 @@ router.get('/:id', async (req, res) => {
 // Create a new product
 router.post('/', async (req, res) => {
     try {
-        const newProduct = await genericServices.createRecord('products', req.body);
+        const { product_name, category, description } = req.body;
+
+        // Basic validation
+        if (!product_name || !category || !description) {
+            return res.status(400).json({ error: 'Missing required fields: product_name, category, description' });
+        }
+        if (!['dry', 'wet'].includes(category)) {
+            return res.status(400).json({ error: "Category must be either 'dry' or 'wet'" });
+        }
+
+        const newProduct = await genericServices.createRecord('products', {
+            product_name,
+            category,
+            description
+        });
         res.status(201).json(newProduct);
     } catch (error) {
         res.status(500).json({ error: error.message });

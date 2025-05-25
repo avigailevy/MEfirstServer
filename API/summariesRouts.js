@@ -1,4 +1,3 @@
-
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 
@@ -30,7 +29,19 @@ router.get('/:id', async (req, res) => {
 // Create a new summary
 router.post('/', async (req, res) => {
     try {
-        const newSummary = await genericServices.createRecord('summaries', req.body);
+        const { project_id, from_user_id, summery_text } = req.body;
+
+        // Basic validation
+        if (!from_user_id) {
+            return res.status(400).json({ error: 'Missing required field: from_user_id' });
+        }
+
+        const newSummary = await genericServices.createRecord('summaries', {
+            project_id,
+            from_user_id,
+            summery_text
+            // summery_time is set automatically by DB
+        });
         res.status(201).json(newSummary);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -48,13 +59,13 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a summary by ID
-// router.delete('/:id', async (req, res) => {
-//     try {
-//         await genericServices.deleteRecord('summaries', 'summary_id', req.params.id);
-//         res.status(204).send();
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
+router.delete('/:id', async (req, res) => {
+    try {
+        await genericServices.deleteRecord('summaries', 'summary_id', req.params.id);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;

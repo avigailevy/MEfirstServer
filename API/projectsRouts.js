@@ -29,7 +29,24 @@ router.get('/:id', async (req, res) => {
 // Create a new project
 router.post('/', async (req, res) => {
     try {
-        const newProject = await genericServices.createRecord('projects', req.body);
+        const { project_name, last_visit_time, status, supplier_id, customer_id, owner_user_id } = req.body;
+
+        // Basic validation
+        if (!project_name || !owner_user_id) {
+            return res.status(400).json({ error: 'Missing required fields: project_name, owner_user_id' });
+        }
+        if (status && !['on hold', 'live project', 'closed'].includes(status)) {
+            return res.status(400).json({ error: "Status must be one of: 'on hold', 'live project', 'closed'" });
+        }
+
+        const newProject = await genericServices.createRecord('projects', {
+            project_name,
+            last_visit_time,
+            status,
+            supplier_id,
+            customer_id,
+            owner_user_id
+        });
         res.status(201).json(newProject);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -39,6 +56,10 @@ router.post('/', async (req, res) => {
 // Update a project by ID
 router.put('/:id', async (req, res) => {
     try {
+        const { status } = req.body;
+        if (status && !['on hold', 'live project', 'closed'].includes(status)) {
+            return res.status(400).json({ error: "Status must be one of: 'on hold', 'live project', 'closed'" });
+        }
         const updatedProject = await genericServices.updateRecord('projects', 'project_id', req.params.id, req.body);
         res.status(200).json(updatedProject);
     } catch (error) {

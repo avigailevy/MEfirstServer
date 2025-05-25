@@ -29,7 +29,23 @@ router.get('/:id', async (req, res) => {
 // Create a new todo
 router.post('/', async (req, res) => {
     try {
-        const newTodo = await genericServices.createRecord('todos', req.body);
+        const { from_user_id, to_user_id, title, description, completed, complete_time, seen } = req.body;
+
+        // Basic validation
+        if (!from_user_id || !to_user_id || !title) {
+            return res.status(400).json({ error: 'Missing required fields: from_user_id, to_user_id, title' });
+        }
+
+        const newTodo = await genericServices.createRecord('todos', {
+            from_user_id,
+            to_user_id,
+            title,
+            description,
+            completed,
+            complete_time,
+            seen
+            // sent_time is set automatically by DB
+        });
         res.status(201).json(newTodo);
     } catch (error) {
         res.status(500).json({ error: error.message });
