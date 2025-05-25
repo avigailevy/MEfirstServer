@@ -5,10 +5,10 @@ async function getAllRecords(tableName) {
     return rows;
 }
 
-async function getRecordById(tableName, columnName, id) {
+async function getRecordByColumn(tableName, columnName, column) {
     const [rows] = await db.query(
         `SELECT * FROM ?? WHERE ?? = ?`,
-        [tableName, columnName, id]
+        [tableName, columnName, column]
     );
     return rows[0];
 }
@@ -27,8 +27,4 @@ async function updateRecord(tableName, columnName, id, record) {
     return { id, ...record };
 }
 
-async function getRecordsByColumn(tableName, columnName, value) {
-    const [rows] = await db.query(`SELECT * FROM ?? WHERE ?? = ?`, [tableName, columnName, value]);
-    return rows;
-}
-module.exports = { getAllRecords, getRecordById, createRecord, deleteRecord, updateRecord, getRecordsByColumn };
+module.exports = { getAllRecords, getRecordByColumn, createRecord, deleteRecord, updateRecord };
