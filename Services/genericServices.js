@@ -1,4 +1,4 @@
-const db = require("../dataBase/db.js");
+const db = require("./db.js");
 
 async function getAllRecords(tableName) {
     const [rows] = await db.query(`SELECT * FROM ??`, [tableName]);
