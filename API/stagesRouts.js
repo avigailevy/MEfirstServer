@@ -29,7 +29,20 @@ router.get('/:id', async (req, res) => {
 // Create a new stage
 router.post('/', async (req, res) => {
     try {
-        const newStage = await genericServices.createRecord('stages', req.body);
+        const { project_id, stage_number, stage_name, completed, completion_date } = req.body;
+
+        // Basic validation
+        if (!project_id || !stage_number) {
+            return res.status(400).json({ error: 'Missing required fields: project_id, stage_number' });
+        }
+
+        const newStage = await genericServices.createRecord('stages', {
+            project_id,
+            stage_number,
+            stage_name,
+            completed,
+            completion_date
+        });
         res.status(201).json(newStage);
     } catch (error) {
         res.status(500).json({ error: error.message });
