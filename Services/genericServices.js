@@ -5,12 +5,20 @@ async function getAllRecords(tableName) {
     return rows;
 }
 
-async function getRecordByColumn(tableName, columnName, column) {
+async function getRecordByColumn(tableName, columnName, value) {
+    const [rows] = await db.query(
+        `SELECT * FROM ?? WHERE ?? = ? LIMIT 1`,
+        [tableName, columnName, value]
+    );
+    return rows[0] || null;
+}
+
+async function getAllRecordsByColumn(tableName, columnName, value) {
     const [rows] = await db.query(
         `SELECT * FROM ?? WHERE ?? = ?`,
-        [tableName, columnName, column]
+        [tableName, columnName, value]
     );
-    return rows[0];
+    return [rows];
 }
 
 function createRecord(tableName, record) {
@@ -27,4 +35,4 @@ async function updateRecord(tableName, columnName, id, record) {
     return { id, ...record };
 }
 
-module.exports = { getAllRecords, getRecordByColumn, createRecord, deleteRecord, updateRecord };
+module.exports = { getAllRecords, getRecordByColumn, getAllRecordsByColumn, createRecord, deleteRecord, updateRecord };
