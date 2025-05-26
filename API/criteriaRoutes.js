@@ -6,7 +6,7 @@ const genericServices = require('../Services/genericServices');
 const genericRouter = createGenericRouter('criteria', 'criterion_id', ['project_id', 'criterion_type', 'shipp_pay_term_id']);
 router.use('/', genericRouter);
 
-//קבלת כל סוגי הקריטריונים הקיימים (enum values)
+//קבלת כל סוגי הקריטריונים הקיימים 
 router.get('/:username/project/:project_id/stage2/criteria/types', async (req, res) => {
     const criterionTypes = [
         'ProductDefinition',
