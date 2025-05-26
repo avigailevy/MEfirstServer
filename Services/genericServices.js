@@ -35,4 +35,5 @@ async function updateRecord(tableName, columnName, id, record) {
     return { id, ...record };
 }
 
+
 module.exports = { getAllRecords, getRecordByColumn, getAllRecordsByColumn, createRecord, deleteRecord, updateRecord };
