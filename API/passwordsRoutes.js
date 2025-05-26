@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const { hashPassword } = require('../Services/passwordServices');
+const { hashPassword } = require('../Services/cryptServices');
 
 // יצירת סיסמה חדשה
 router.post('/', async (req, res) => {

@@ -36,4 +36,23 @@ async function updateRecord(tableName, columnName, id, record) {
 }
 
 
-module.exports = { getAllRecords, getRecordByColumn, getAllRecordsByColumn, createRecord, deleteRecord, updateRecord };
+async function getRecordByColumns(tableName, columnsObj) {
+    const columns = Object.keys(columnsObj);
+    const values = Object.values(columnsObj);
+    const whereClause = columns.map(col => `\`${col}\` = ?`).join(' AND ');
+    const [rows] = await db.query(
+        `SELECT * FROM \`${tableName}\` WHERE ${whereClause} LIMIT 1`,
+        values
+    );
+    return rows[0] || null;
+}
+
+module.exports = { 
+    getAllRecords, 
+    getRecordByColumn, 
+    getAllRecordsByColumn, 
+    createRecord, 
+    deleteRecord, 
+    updateRecord,
+    getRecordByColumns 
+};
