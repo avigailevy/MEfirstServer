@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 
+//פונקציה שמבצעת גיבוב (hash) לסיסמה באמצעות PBKDF2 ומחזירה את הגיבוב והמלח.
 function hashPassword(password) {
     const password_salt = crypto.randomBytes(16).toString('hex');
     const password_hash = crypto

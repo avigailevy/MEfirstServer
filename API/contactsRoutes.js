@@ -6,18 +6,6 @@ const createGenericRouter = require('./genericRouter');
 const genericRouter = createGenericRouter('contacts', 'contact_id', ['user_id', 'contact_name']);
 router.use('/', genericRouter);
 
-// קבלת כל אנשי הקשר של משתמש מסוים
-router.get('/:username/:customersOrSupliers', async (req, res) => {
-    try {
-        const filteredContacts = await genericServices.getAllRecordsByColumns(
-            'contacts',
-            { user_id: req.params.username, type: req.params.customersOrSupliers }
-        );
-        res.json(filteredContacts);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 // ניתוב זה מחזיר את כל אנשי הקשר של משתמש מסוים לפי סוג (לקוחות/ספקים)
 router.post('/', async (req, res) => {
     try {
@@ -76,6 +64,62 @@ router.delete('/:username/:customersOrSupliers/:contact_name', async (req, res) 
             return res.status(200).json({ message: 'Contact deleted.' });
         } else {
             return res.status(400).json({ error: 'Contact type does not match.' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// עדכון איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר, כולל בדיקת הרשאות Admin
+router.put('/:username/:customersOrSupliers/:contact_name', async (req, res) => {
+    try {
+        const { username, customersOrSupliers, contact_name } = req.params;
+        const updateData = req.body;
+
+        // בדוק אם המשתמש קיים ומה ה-ROLE שלו
+        const user = await genericServices.getRecordByColumns('users', { username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        if (user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Permission denied. Only Admin can update contacts.' });
+        }
+
+        // מצא את איש הקשר לפי user_id, contact_name ו-type
+        const contact = await genericServices.getRecordByColumns('contacts', { user_id: user.user_id, contact_name, contact_type: customersOrSupliers });
+        if (!contact) {
+            return res.status(404).json({ error: 'Contact not found for this user and type.' });
+        }
+        // בדוק אם שינו את הסוג של איש הקשר
+        if (updateData.contact_type && updateData.contact_type !== contact.contact_type) {
+            // אם הסוג הנוכחי הוא 'other', אפשר לעדכן לכל סוג
+            if (contact.contact_type === 'other') {
+            // אין צורך בבדיקה נוספת, אפשר להמשיך לעדכן
+            } else {
+            // אם מנסים לשנות בין 'customer' ל'supplier' או להפך
+            if (
+                (contact.contact_type === 'customer' && updateData.contact_type === 'supplier') ||
+                (contact.contact_type === 'supplier' && updateData.contact_type === 'customer')
+            ) {
+                // שנה ל'other' במקום לעדכן ישירות
+                updateData.contact_type = 'other';
+            } else {
+                // סוג לא תואם, החזר שגיאה
+                return res.status(400).json({ error: 'Invalid contact type change.' });
+            }
+            }
+        }
+        // עדכן את איש הקשר לפי contact_id
+        const updated = await genericServices.updateRecord(
+            'contacts',
+            'contact_id',
+            contact.contact_id,
+            updateData
+        );
+
+        if (updated) {
+            res.status(200).json({ message: 'Contact updated successfully.' });
+        } else {
+            res.status(400).json({ error: 'Failed to update contact.' });
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
