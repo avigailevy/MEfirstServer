@@ -10,17 +10,14 @@ router.post('/', async (req, res) => {
         if (!user_id || !password) {
             return res.status(400).json({ error: 'user_id and password are required' });
         }
-
         // הצפנת הסיסמה
         const { password_hash, password_salt } = hashPassword(password);
-
         // שמירת הרשומה בטבלה
         const passwordRecord = await genericServices.createRecord('passwords', {
             user_id,
             password_hash,
             password_salt
         });
-
         res.status(201).json(passwordRecord);
     } catch (err) {
         res.status(400).json({ error: err.message });
