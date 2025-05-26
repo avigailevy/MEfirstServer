@@ -21,6 +21,17 @@ async function getAllRecordsByColumn(tableName, columnName, value) {
     return [rows];
 }
 
+async function getRecordByColumns(tableName, columnsObj) {
+    const columns = Object.keys(columnsObj);
+    const values = Object.values(columnsObj);
+    const whereClause = columns.map(col => `\`${col}\` = ?`).join(' AND ');
+    const [rows] = await db.query(
+        `SELECT * FROM \`${tableName}\` WHERE ${whereClause} LIMIT 1`,
+        values
+    );
+    return rows[0] || null;
+}
+
 function createRecord(tableName, record) {
     const result = db.query(`INSERT INTO ?? SET ?`, [tableName, record]);
     return { id: result.insertId, ...record };
@@ -35,6 +46,7 @@ async function updateRecord(tableName, columnName, id, record) {
     return { id, ...record };
 }
 
+<<<<<<< HEAD
 
 async function getRecordByColumns(tableName, columnsObj) {
     const columns = Object.keys(columnsObj);
