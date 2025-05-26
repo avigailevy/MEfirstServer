@@ -46,8 +46,6 @@ async function updateRecord(tableName, columnName, id, record) {
     return { id, ...record };
 }
 
-<<<<<<< HEAD
-
 async function getRecordByColumns(tableName, columnsObj) {
     const columns = Object.keys(columnsObj);
     const values = Object.values(columnsObj);

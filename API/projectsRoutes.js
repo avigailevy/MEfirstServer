@@ -119,7 +119,8 @@ router.post('/:username/:openOrCloseProjects', authenticateToken, async (req, re
             status: projectStatus,
             supplier_id,
             customer_id,
-            owner_user_id
+            owner_user_id,
+            last_visit_time: new Date()
         };
 
         const created = await genericServices.createRecord('projects', newProject);
