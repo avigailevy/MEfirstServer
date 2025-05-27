@@ -5,9 +5,8 @@ const router = express.Router();
 const genericRouter = createGenericRouter('documents', 'document_id', ['project_id', 'doc_type', 'doc_version', 'file_path']);
 router.use('/', genericRouter);
 const genericServices = require('../Services/genericServices');
-const validateProjectUpdate = require('../utils/validateProjectUpdate');
-const authenticateToken = require('../middleware/auth');
-const authorizeUser = require('../middleware/authorizeUser');
+const authenticateToken = require('./middlewares');
+const authorizeUser = require('./middlewares');
 
 // Get projects by username and status (open or closed)
 router.get('/:username/:openOrCloseProjects', async (req, res) => {
