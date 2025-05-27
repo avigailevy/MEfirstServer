@@ -11,7 +11,6 @@ app.use("/contacts", require("./API/contactsRoutes"));
 app.use("/criteria", require("./API/criteriaRoutes"));
 app.use("/documents", require("./API/documentsRoutes"));
 app.use("/generic", require("./API/genericRouter"));
-app.use("/messages", require("./API/messagesRoutes"));
 app.use("/originalDocs", require("./API/originalDocsRoutes"));
 app.use("/passwords", require("./API/passwordsRoutes"));
 app.use("/products", require("./API/productsRoutes"));
