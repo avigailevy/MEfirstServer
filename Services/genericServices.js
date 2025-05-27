@@ -32,8 +32,8 @@ async function getRecordByColumns(tableName, columnsObj) {
     return rows[0] || null;
 }
 
-function createRecord(tableName, record) {
-    const result = db.query(`INSERT INTO ?? SET ?`, [tableName, record]);
+async function createRecord(tableName, record) {
+    const [result] = await db.query(`INSERT INTO ?? SET ?`, [tableName, record]);
     return { id: result.insertId, ...record };
 }
 
