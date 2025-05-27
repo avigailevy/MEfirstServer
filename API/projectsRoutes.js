@@ -5,8 +5,9 @@ const router = express.Router();
 const genericRouter = createGenericRouter('documents', 'document_id', ['project_id', 'doc_type', 'doc_version', 'file_path']);
 router.use('/', genericRouter);
 const genericServices = require('../Services/genericServices');
-const authenticateToken = require('./middlewares');
-const authorizeUser = require('./middlewares');
+// const validateProjectUpdate = require('../utils/validateProjectUpdate');
+// const authenticateToken = require('../middleware/auth');
+// const authorizeUser = require('../middleware/authorizeUser');
 
 // Get projects by username and status (open or closed)
 router.get('/:username/:openOrCloseProjects', async (req, res) => {
@@ -36,8 +37,7 @@ router.get('/:username/:openOrCloseProjects', async (req, res) => {
 // Update a project by username and status (open or closed)
 router.put(
     '/:username/:openOrCloseProjects/:projectId',
-    authenticateToken,
-    authorizeUser,
+
     async (req, res) => {
         try {
             let statusArray;
@@ -85,7 +85,8 @@ router.put(
 );
 
 // Add a new project for a specific user and status group
-router.post('/:username/:openOrCloseProjects', authenticateToken, async (req, res) => {
+router.post('/:username/:openOrCloseProjects',
+     async (req, res) => {
     try {
         // Validate status group
         let statusArray;
