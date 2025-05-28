@@ -119,7 +119,8 @@ router.post('/:username/:openOrCloseProjects',
             status: projectStatus,
             supplier_id,
             customer_id,
-            owner_user_id,
+            owner_user_id: owner_user_id,
+            creation_time: new Date(),
             last_visit_time: new Date()
         };
 
