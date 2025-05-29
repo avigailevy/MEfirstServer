@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "mefirst-cloud",
+  "private_key_id": "c0aa7e33be18f3d38f404fb9fc5176816d3b3c30",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDMP7qu+GXpwNEc\n/PQSiSlBhO+wzuOWMnK1fFFKpfVGIS4b3L5gLz8cBwiE/UApQUEqXQjZtn1LGXL2\nwxyCevq+dZDTzB19nSY+zxtC5+8f8rAPXQC2Gqmjafgfhum1boGtTVZ7sywkO93q\nibJ/9LBDjhsRBmu54aGEFU5YWdRnTbRbZ+I85qqrvwocTNAsuSxygRrQfm0pTlHE\nlpXbcvQvvi6FrwGw3ORGVyHNb8Lhb4Ws+i2IEmp5udtCMrKjXwi+5EGtMw7N7xyW\njy0GOalBiW1GV5+usR4ylv2hM41HrTl8f0Ed2klig0L+q5gwecF2NAUv43htW4X6\n7vOu4w/1AgMBAAECggEAAKDWAMAGOfkd4P+65P/vjVVraD4lpz/yGpXcy0d+da/z\nbh5ksVQ1aGhvG/X/cXUg7DPmUxB6W3kdouB00b52BfVkdeHlfooDKYvBQWYIFM64\nXoFuVOk9Hd3LX3tIfGyHOpOufRiiFfY2hYWRMmo705wt1IHWT0JTXnPZXiMm8M30\nZ96CmskFFq03/GZ5tasz9DHtGJofKBDB/lTrf/L1bdcLALEWvAjVrPiuAf21WbLy\nz01BPaGmvAL/0GDWybDXUIRgEjoVGGMSh3bxHiozTtfb7lYpY7KlbIDPidDFcJ8J\nhksPEhYBm9Yq8mkGksmpRLQbSUqRylZ6GNXIuOBz0QKBgQD0u7h3ilOsHij8zQoN\ngQLta+x+LqQ72rcNOA3DkBqUKhUR42B6TnchSEBS3/wcv8b1WZagq09OWQYD3rTl\nkTcr+Ic5oAOsIGBGa/8bKWstvCcxDnZMBSsryKYt7XIeECj6woeyn0lDnPG/3DbJ\n9fWHc1QiN5MBX6ugyUR7s6m9EQKBgQDVpuJxJsmm+/l+Bj5DlBtYRr9/9n2BhpNN\nWgRpaP2cPXM/B09Rd2J2Paqfd7fUoKJDjqJZgF2DMCM9acgfXEt0FHwZdsbijSNh\nM1Vhd6XcIi4VoSvLjJFE0KdJZf42xLpEX2acB4s6x8AVpEAt8c6j9ozscQlqbMXK\nD/ENFcj0pQKBgQCfT8wHVS6erotz9W2D2OW09Dpg8a/LntbmbgTXt2j15mcM2/0j\n4Qw/yC7HRDNz64tyj700HhBkKiN2RXVws5U8tG4inv2FARZrAUZxwgaZIRBKKOXt\nGrg9qkIzR4yv8Ukb46I+Lt6cewAMKygnVEtevz6Xf6HclRC+fAZumEf4YQKBgA9w\nf+ytYOUwUFdLHDTF/zPh6PTWWzuA/iQY3TjA3ZLs3ecwIAtDFVp2Gl5ryF0VPqSj\nKhhNrnRMhj9p5YxenxVEZbNxYe39RRFBJGpmuxWtYqctfny3K8hNS8mCFVzf2pYW\nTtP3t5gH11m5BOpNDyHKL2TmxkdqlOCFRmYrrNoBAoGAFGqRVEdM8mQK743jqDso\nInqRnbFWXJZOxtDMg5h/Q8FMiISZ4wb//wzH/iqAxkKd6xJHsVvuo8rQaJzMAmBD\nYKDyNhLVz1gBkgjvuJXdJNU09nRL6SiOjCNr3a+zP5aKaNYtVpw9Qxwpv85/9IYD\nXhZNygW5j/ifzWQBnlu/Vjs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "mefirst-service-account@mefirst-cloud.iam.gserviceaccount.com",
+  "client_id": "112993251751612705219",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mefirst-service-account%40mefirst-cloud.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
