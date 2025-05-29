@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const createGenericRouter = require('./genericRouter');
-
-const genericRouter = createGenericRouter('contacts', 'contact_id', ['user_id', 'contact_name']);
-router.use('/', genericRouter);
 
 // ניתוב זה מחזיר את כל אנשי הקשר של משתמש מסוים לפי סוג (לקוחות/ספקים)
 router.post('/', async (req, res) => {
@@ -12,7 +8,7 @@ router.post('/', async (req, res) => {
         const { user_id, contact_name, type } = req.body;
 
         // בדוק אם איש הקשר כבר קיים עם אותו user_id וcontact_name
-        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name });
+        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name, contact_type: type });
 
         if (existingContact) {
             // אם הסוג שונה מהסוג הקיים, שנה ל-OTHER
