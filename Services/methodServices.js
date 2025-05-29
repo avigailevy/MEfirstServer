@@ -39,4 +39,18 @@ function validateProjectUpdate(project, updateData) {
     return { valid: true };
 }
 
-module.exports = validateProjectUpdate;
+const db = require("./db.js");
+async function countRecords( datePrefix) {
+    const [rows] = await db.query(
+        `SELECT COUNT(*) AS count 
+         FROM projects 
+         WHERE LEFT(LPAD(project_id, 6, '0'), 4) = ?`,
+        [datePrefix]
+    );
+    return rows[0].count;
+}
+
+module.exports = {
+  validateProjectUpdate,
+  countRecords
+};

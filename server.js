@@ -14,7 +14,7 @@ app.use("/generic", require("./API/genericRouter"));
 app.use("/originalDocs", require("./API/originalDocsRoutes"));
 app.use("/passwords", require("./API/passwordsRoutes"));
 app.use("/products", require("./API/productsRoutes"));
-app.use("/projects", require("./API/projectsRoutes"));
+app.use("", require("./API/projectsRoutes"));
 app.use("/stages", require("./API/stagesRoutes"));
 app.use("/summaries", require("./API/summariesRoutes"));
 app.use("/todos", require("./API/todosRoutes"));

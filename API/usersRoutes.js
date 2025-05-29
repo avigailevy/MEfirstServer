@@ -20,7 +20,7 @@ const genericRouter = createGenericRouter('users', 'user_id', userFields);
 router.use('/', genericRouter);
 
 // הרשמה (sign up)
-router.post('/signUp', async (req, res) => {
+router.post('/addUser', async (req, res) => {
     try {
         const { username, password, ...otherFields } = req.body;
         if (!username || !password) {
