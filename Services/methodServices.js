@@ -1,9 +1,5 @@
-/**
- * Validate project update input and status transition rules.
- * @param {Object} project - The existing project from DB.
- * @param {Object} updateData - The update data from req.body.
- * @returns {Object} { valid: boolean, message: string }
- */
+const db = require("./db.js");
+
 function validateProjectUpdate(project, updateData) {
     const allowedStatuses = ['on hold', 'live project', 'closed'];
 
@@ -39,7 +35,7 @@ function validateProjectUpdate(project, updateData) {
     return { valid: true };
 }
 
-const db = require("./db.js");
+
 async function countRecords( datePrefix) {
     const [rows] = await db.query(
         `SELECT COUNT(*) AS count 

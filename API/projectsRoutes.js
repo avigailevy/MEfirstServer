@@ -96,8 +96,24 @@ router.delete('/:username/:openOrCloseProjects/:projectId', async (req, res) => 
     }
 });
 
+router.get('/:username/:openOrCloseProjects/:projectId/:currentStage/getFile_path', async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        if (!projectId) {
+            return res.status(400).json({ error: 'Missing project_id' });
+        }
 
+        const document = await genericServices.getRecordByColumns(
+            'documents',
+            {
+                project_id: projectId,
 
+            }
+        )
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 router.post('/:username/:openOrCloseProjects',
      async (req, res) => {
