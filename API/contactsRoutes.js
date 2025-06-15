@@ -2,17 +2,37 @@ const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
-// ניתוב זה מחזיר את כל אנשי הקשר של משתמש מסוים לפי סוג (לקוחות/ספקים)
-router.post('/', async (req, res) => {
+// החזרת כל אנשי הקשר לפי סוג(ספק/לקוח) של משתמש 
+router.get('/:username/:customersOrSupliers/all', async (req, res) => {
     try {
-        const { user_id, contact_name, type } = req.body;
+        const { username, customersOrSupliers } = req.params;
+        const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
+        res.json(allContacts);
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+// הוספת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
+router.post('/:username/:customersOrSupliers/add/contact_name', async (req, res) => {
+    try {
+        const { username, customersOrSupliers, contact_name } = req.params;
+
+        //  מציאת ה-user_id לפי שם המשתמש
+        const user = await genericServices.getRecordByColumn('users', 'username', username);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const user_id = user.user_id;
 
         // בדוק אם איש הקשר כבר קיים עם אותו user_id וcontact_name
-        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name, contact_type: type });
+        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name, contact_type: customersOrSupliers });
 
         if (existingContact) {
             // אם הסוג שונה מהסוג הקיים, שנה ל-OTHER
-            if (existingContact.type !== type) {
+            if (existingContact.contact_type !== customersOrSupliers) {
                 await genericServices.updateRecord(
                     'contacts',
                     'contact_id',
@@ -26,13 +46,13 @@ router.post('/', async (req, res) => {
         }
 
         // אם לא קיים, הוסף איש קשר חדש
-        const newContact = await genericServices.createRecord('contacts', { user_id, contact_name, contact_type: type });
+        const newContact = await genericServices.createRecord('contacts', { user_id, contact_name, contact_type: customersOrSupliers });
         res.status(201).json(newContact);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-// מוחק איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
+// מחיקת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
 router.delete('/:username/:customersOrSupliers/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
@@ -44,7 +64,7 @@ router.delete('/:username/:customersOrSupliers/:contact_name', async (req, res) 
             return res.status(404).json({ error: 'Contact not found.' });
         }
 
-        if (contact.contact_type === 'other') {            
+        if (contact.contact_type === 'other') {
             // אם מוחקים מתוך "לקוח", שנה ל"ספק" וכן להיפך
             const newType = customersOrSupliers === 'customer' ? 'supplier' : 'customer';
             await genericServices.updateRecord(
@@ -89,19 +109,19 @@ router.put('/:username/:customersOrSupliers/:contact_name', async (req, res) => 
         if (updateData.contact_type && updateData.contact_type !== contact.contact_type) {
             // אם הסוג הנוכחי הוא 'other', אפשר לעדכן לכל סוג
             if (contact.contact_type === 'other') {
-            // אין צורך בבדיקה נוספת, אפשר להמשיך לעדכן
+                // אין צורך בבדיקה נוספת, אפשר להמשיך לעדכן
             } else {
-            // אם מנסים לשנות בין 'customer' ל'supplier' או להפך
-            if (
-                (contact.contact_type === 'customer' && updateData.contact_type === 'supplier') ||
-                (contact.contact_type === 'supplier' && updateData.contact_type === 'customer')
-            ) {
-                // שנה ל'other' במקום לעדכן ישירות
-                updateData.contact_type = 'other';
-            } else {
-                // סוג לא תואם, החזר שגיאה
-                return res.status(400).json({ error: 'Invalid contact type change.' });
-            }
+                // אם מנסים לשנות בין 'customer' ל'supplier' או להפך
+                if (
+                    (contact.contact_type === 'customer' && updateData.contact_type === 'supplier') ||
+                    (contact.contact_type === 'supplier' && updateData.contact_type === 'customer')
+                ) {
+                    // שנה ל'other' במקום לעדכן ישירות
+                    updateData.contact_type = 'other';
+                } else {
+                    // סוג לא תואם, החזר שגיאה
+                    return res.status(400).json({ error: 'Invalid contact type change.' });
+                }
             }
         }
         // עדכן את איש הקשר לפי contact_id
