@@ -1,12 +1,8 @@
 const express = require('express');
-const createGenericRouter = require('./genericRouter');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
-const genericRouter = createGenericRouter('summaries', 'summary_id', ['from_user_id']);
-router.use('/', genericRouter);
-
-// קבלת  הסיכומים עבור פרוייקט מסויים
+// קבלת הסיכומים עבור פרוייקט מסויים
 router.get('/:username/:project_id/last', async (req, res) => {
     try {
         const { project_id } = req.params;

@@ -1,10 +1,6 @@
 const express = require('express');
-const createGenericRouter = require('./genericRouter');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
-
-const genericRouter = createGenericRouter('products', 'product_id', ['product_name', 'category', 'description']);
-router.use('/', genericRouter);
 
 // קבלת כל המוצרים עבור משתמש מסוים
 router.get('/:username/products', async (req, res) => {
@@ -18,6 +14,7 @@ router.get('/:username/products', async (req, res) => {
 
 // קבלת מוצר מסוים לפי מזהה עבור משתמש מסוים
 router.get('/:username/products/:id', async (req, res) => {
+    
     try {
         const { id } = req.params;
         const product = await genericServices.getRecordByColumn('products', 'product_id', id);
