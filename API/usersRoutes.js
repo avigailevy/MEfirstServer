@@ -1,8 +1,8 @@
-const createGenericRouter = require('./genericRouter');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
+const jwt = require("jsonwebtoken");
 
 const userFields = [
     'username',
