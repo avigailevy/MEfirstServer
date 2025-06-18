@@ -3,7 +3,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
 // קבלת הסיכומים עבור פרוייקט מסויים
-router.get('/:username/:project_id/last', async (req, res) => {
+router.get('/last', async (req, res) => {
     try {
         const { project_id } = req.params;
         // קבלת כל הסיכומים עבור הפרוייקט
@@ -17,7 +17,7 @@ router.get('/:username/:project_id/last', async (req, res) => {
 });
 
 //הוספת סיכום חדש
-router.post('/:username/:project_id/add_summ', async (req, res) => {
+router.post('/add_summ', async (req, res) => {
     try {
         const { project_id } = req.params;
         const { from_user_id, summary_text } = req.body;
@@ -41,7 +41,7 @@ router.post('/:username/:project_id/add_summ', async (req, res) => {
 });
 
 // עדכון סיכום קיים
-router.put('/:username/:project_id/:summary_id', async (req, res) => {
+router.put('/:summary_id', async (req, res) => {
     try {
         const { summary_id } = req.params;
         const { summary_text } = req.body;

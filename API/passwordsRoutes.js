@@ -4,7 +4,7 @@ const genericServices = require('../Services/genericServices');
 const { hashPassword } = require('../Services/cryptServices');
 
 // יצירת סיסמה חדשה
-router.post('/', async (req, res) => {
+router.post('/new', async (req, res) => {
     try {
         const { user_id, password } = req.body;
         if (!user_id || !password) {
@@ -24,19 +24,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// קבלת סיסמה לפי מזהה משתמש
-router.get('/:user_id', async (req, res) => {
-    try {
-        const password = await genericServices.getRecordByColumn('passwords', 'user_id', req.params.user_id);
-        if (!password) return res.status(404).json({ error: 'Not found' });
-        res.json(password);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 // עדכון סיסמה
-router.put('/:user_id', async (req, res) => {
+router.put('/update', async (req, res) => {
     try {
         const { password } = req.body;
         if (!password) {

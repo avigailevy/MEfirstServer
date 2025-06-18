@@ -3,7 +3,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
 // החזרת כל אנשי הקשר לפי סוג(ספק/לקוח) של משתמש 
-router.get('/:username/:customersOrSupliers/all', async (req, res) => {
+router.get('/all', async (req, res) => {
     try {
         const { username, customersOrSupliers } = req.params;
         const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
@@ -14,7 +14,7 @@ router.get('/:username/:customersOrSupliers/all', async (req, res) => {
     }
 })
 // הוספת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
-router.post('/:username/:customersOrSupliers/add/contact_name', async (req, res) => {
+router.post('/add/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
 
@@ -53,7 +53,7 @@ router.post('/:username/:customersOrSupliers/add/contact_name', async (req, res)
     }
 });
 // מחיקת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
-router.delete('/:username/:customersOrSupliers/:contact_name', async (req, res) => {
+router.delete('/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
 
@@ -86,7 +86,7 @@ router.delete('/:username/:customersOrSupliers/:contact_name', async (req, res) 
     }
 });
 // עדכון איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר, כולל בדיקת הרשאות Admin
-router.put('/:username/:customersOrSupliers/:contact_name', async (req, res) => {
+router.put('/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
         const updateData = req.body;

@@ -7,18 +7,17 @@ const auth = require('./Services/googleServices/googleAuth');
 app.use(express.json()); // מאפשר שליחת JSON בבקשות
 
 // נתיבים
-app.use("/users", require("./API/usersRoutes"));
-app.use("/contacts", require("./API/contactsRoutes"));
-app.use("/criteria", require("./API/criteriaRoutes"));
-app.use("/documents", require("./API/documentsRoutes"));
-app.use("/generic", require("./API/genericRouter"));
+app.use("/:username/users", require("./API/usersRoutes"));
+app.use("/:username/contacts/:customersOrSuppliers", require("./API/contactsRoutes"));
+app.use("/:username/project/:project_id/criteria", require("./API/criteriaRoutes"));
+app.use("/:username/documents", require("./API/documentsRoutes"));
 app.use("/originalDocs", require("./API/originalDocsRoutes"));
-app.use("/passwords", require("./API/passwordsRoutes"));
-app.use("/products", require("./API/productsRoutes"));
-app.use("", require("./API/projectsRoutes"));
-app.use("/stages", require("./API/stagesRoutes"));
-app.use("/summaries", require("./API/summariesRoutes"));
-app.use("/todos", require("./API/todosRoutes"));
+app.use("/:username/passwords", require("./API/passwordsRoutes"));
+app.use("/:username/products", require("./API/productsRoutes"));
+app.use("/:username/projects/:projectStatus", require("./API/projectsRoutes"));
+app.use("/:username/stages", require("./API/stagesRoutes"));
+app.use("/:username/:project_id/summaries", require("./API/summariesRoutes"));
+app.use("/:username/todos", require("./API/todosRoutes"));
 
 // בדיקת תקינות השרת
 app.get("/", (req, res) => {

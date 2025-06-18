@@ -3,7 +3,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
 //ניתוב שמחזיר את כל הסוכנים
-router.get('/:username/agents/all', async (req, res) => {
+router.get('/agents/all', async (req, res) => {
     try {
         res.json(genericServices.getAllRecordsByColumn('users', 'role', 'agent'));
     }

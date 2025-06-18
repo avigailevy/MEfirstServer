@@ -3,7 +3,7 @@ const genericServices = require('../Services/genericServices');
 const router = express.Router();
 
 // קבלת כל המוצרים עבור משתמש מסוים
-router.get('/:username/products', async (req, res) => {
+router.get('/all', async (req, res) => {
     try {
         const products = await genericServices.getAllRecords('products');
         res.json(products);
@@ -13,11 +13,10 @@ router.get('/:username/products', async (req, res) => {
 });
 
 // קבלת מוצר מסוים לפי מזהה עבור משתמש מסוים
-router.get('/:username/products/:id', async (req, res) => {
-    
+router.get('/:productId', async (req, res) => {    
     try {
-        const { id } = req.params;
-        const product = await genericServices.getRecordByColumn('products', 'product_id', id);
+        const { productId } = req.params;
+        const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -28,7 +27,7 @@ router.get('/:username/products/:id', async (req, res) => {
 });
 
 // קבלת כל המוצרים לפי קטגוריה עבור משתמש מסוים
-router.get('/:username/products/:category', async (req, res) => {
+router.get('/:category/all', async (req, res) => {
     try {
         const { category } = req.params;
         const products = await genericServices.getAllRecordsByColumn('products', 'category', category);
@@ -39,10 +38,10 @@ router.get('/:username/products/:category', async (req, res) => {
 });
 
 // קבלת מוצר לפי מזהה עבור משתמש מסוים וקטגוריה
-router.get('/:username/products/:category/:id', async (req, res) => {
+router.get('/:category/:productId', async (req, res) => {
     try {
-        const { id } = req.params;
-        const product = await genericServices.getRecordByColumn('products', 'product_id', id);
+        const { productId } = req.params;
+        const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -53,10 +52,10 @@ router.get('/:username/products/:category/:id', async (req, res) => {
 });
 
 // מחיקת מוצר לפי מזהה עבור משתמש מסוים
-router.delete('/:username/products/:id', async (req, res) => {
+router.delete('/:productId', async (req, res) => {
     try {
-        const { id } = req.params;
-        await genericServices.deleteRecord('products', 'product_id', id);
+        const { productId } = req.params;
+        await genericServices.deleteRecord('products', 'product_id', productId);
         const deleted = true;
         if (!deleted) {
             return res.status(404).json({ error: 'Product not found' });
@@ -68,11 +67,11 @@ router.delete('/:username/products/:id', async (req, res) => {
 });
 
 // עדכון מוצר לפי מזהה עבור משתמש מסוים
-router.put('/:username/products/:id', async (req, res) => {
+router.put('/:productId', async (req, res) => {
     try {
-        const { id } = req.params;
+        const { productId } = req.params;
         const updatedData = req.body;
-        const updated = await genericServices.updateRecord('products', 'product_id', id, updatedData);
+        const updated = await genericServices.updateRecord('products', 'product_id', productId, updatedData);
         if (!updated) {
             return res.status(404).json({ error: 'Product not found' });
         }

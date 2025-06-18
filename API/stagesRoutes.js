@@ -7,7 +7,7 @@ const genericRouter = createGenericRouter('stages', 'stage_id', ['project_id', '
 router.use('/', genericRouter);
 
 // קבלת כל השלבים של פרויקט מסוים
-router.get('/:username/:project_id', async (req, res) => {
+router.get('/:project_id', async (req, res) => {
     try {
         const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", req.params);
         res.json(stages);
@@ -16,7 +16,7 @@ router.get('/:username/:project_id', async (req, res) => {
     }
 });
 // קבלת שלב ספציפי לפי מזהה פרוייקט ומזהה שלב
-router.put('/:username/:project_id/:stage_id/completed', async (req, res) => {
+router.put('/:project_id/:stage_id/completed', async (req, res) => {
     try {
         const { stage_id } = req.params;
         const { completed } = req.body;
@@ -35,7 +35,7 @@ router.put('/:username/:project_id/:stage_id/completed', async (req, res) => {
     }
 });
 // קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
-router.get('/:username/:project_id/next', async (req, res) => {
+router.get('/:project_id/next', async (req, res) => {
     try {
         const { project_id } = req.params;
         // Get all stages for the project, ordered by stage_id

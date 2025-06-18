@@ -10,13 +10,13 @@ const { countRecords } = require('../Services/methodServices');
 // const authorizeUser = require('../middleware/authorizeUser');
 
 // Get projects by username and status (open or closed)
-router.get('/:username/:openOrCloseProjects', async (req, res) => {
+router.get('/all', async (req, res) => {
 
     try {
         let statusArray;
-        if (req.params.openOrCloseProjects === 'open') {
+        if (req.params.projectStatus === 'open') {
             statusArray = ['on hold', 'live project']; // Open projects
-        } else if (req.params.openOrCloseProjects === 'closed') {
+        } else if (req.params.projectStatus === 'closed') {
             statusArray = ['closed']; // Closed projects
         } else {
             return res.status(400).json({ error: 'Invalid status parameter' });
@@ -35,14 +35,14 @@ router.get('/:username/:openOrCloseProjects', async (req, res) => {
 });
 
 // Update a project by username and status (open or closed)
-router.put('/:username/:openOrCloseProjects/:projectId',
+router.put('/:projectId',
 
     async (req, res) => {
         try {
             let statusArray;
-            if (req.params.openOrCloseProjects === 'open') {
+            if (req.params.projectStatus === 'open') {
                 statusArray = ['on hold', 'live project'];
-            } else if (req.params.openOrCloseProjects === 'closed') {
+            } else if (req.params.projectStatus === 'closed') {
                 statusArray = ['closed'];
             } else {
                 return res.status(400).json({ error: 'Invalid status parameter' });
@@ -83,9 +83,9 @@ router.put('/:username/:openOrCloseProjects/:projectId',
     }
 );
 
-router.delete('/:username/:openOrCloseProjects/:projectId', async (req, res) => {
+router.delete('/:projectId', async (req, res) => {
     try {
-        const {projectId} = req.params; 
+        const { projectId } = req.params;
         if (!projectId) {
             return res.status(400).json({ error: 'Missing project_id' });
         }
@@ -96,7 +96,7 @@ router.delete('/:username/:openOrCloseProjects/:projectId', async (req, res) => 
     }
 });
 
-router.get('/:username/:openOrCloseProjects/:projectId/:currentStage/getFile_path', async (req, res) => {
+router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
     try {
         const { projectId } = req.params;
         if (!projectId) {
@@ -115,50 +115,40 @@ router.get('/:username/:openOrCloseProjects/:projectId/:currentStage/getFile_pat
     }
 });
 
-router.post('/:username/:openOrCloseProjects',
-     async (req, res) => {
-                
-
+router.post('/', async (req, res) => {
     try {
-        // Validate status group
-       
+        // Validate status group       
         let statusArray;
-        if (req.params.openOrCloseProjects === 'open') {
+        if (req.params.projectStatus === 'open') {
             statusArray = ['on hold', 'live project'];
-        } else if (req.params.openOrCloseProjects === 'closed') {
+        } else if (req.params.projectStatus === 'closed') {
             statusArray = ['closed'];
         } else {
             return res.status(400).json({ error: 'Invalid status parameter' });
         }
-
         // Validate required fields
-        const {project_name, status, supplier_id, customer_id } = req.body;
+        const { project_name, status, supplier_id, customer_id } = req.body;
         // Generate project_id with date prefix + counter
         const now = new Date();
         const day = String(now.getDate()).padStart(2, '0');
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const prefix = `${day}${month}`; // e.g., "2805"
-
-
-        const count =  await  countRecords(prefix);
+        const count = await countRecords(prefix);
         const serial = String((count + 1) % 100).padStart(2, '0'); // Max 99 projects per day
         const project_id = Number(`${prefix}${serial}`);
-        console.log("count:", count); 
-       console.log("prefix:", prefix);
-         const owner_user_id = 329674543;
-        if (!project_name||!owner_user_id) {
+        console.log("count:", count);
+        console.log("prefix:", prefix);
+        const owner_user_id = 329674543;
+        if (!project_name || !owner_user_id) {
             return res.status(400).json({ error: 'Project name is required.' });
         }
-      
         // Validate status
         const allowedStatuses = ['on hold', 'live project', 'closed'];
         const projectStatus = status && allowedStatuses.includes(status) ? status : statusArray[0];
         if (!statusArray.includes(projectStatus)) {
             return res.status(400).json({ error: 'Status does not match the requested group.' });
         }
-
         // Get owner_user_id (should be from token, not from params for security)
-
         const newProject = {
             project_id,
             project_name,
@@ -167,9 +157,7 @@ router.post('/:username/:openOrCloseProjects',
             supplier_id,
             customer_id,
             owner_user_id
-            
-            };
-
+        };
         const created = await genericServices.createRecord('projects', newProject);
         res.status(201).json(created);
     } catch (err) {

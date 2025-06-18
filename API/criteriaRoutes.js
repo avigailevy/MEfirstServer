@@ -3,7 +3,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
 //קבלת כל סוגי הקריטריונים הקיימים 
-router.get('/:username/project/:project_id/stage2/criteria/types', async (req, res) => {
+router.get('/stage2/criteria/types', async (req, res) => {
     const criterionTypes = [
         'ProductDefinition',
         'Quantities',
@@ -19,7 +19,7 @@ router.get('/:username/project/:project_id/stage2/criteria/types', async (req, r
 });
 
 // קבלת כל הקריטריונים של פרויקט מסוים
-router.get('/:username/project/:project_id/step2/criteria', async (req, res) => {
+router.get('/:stage/criteria', async (req, res) => {
     try {
         const criteria = await genericServices.getAllRecordsByColumn('criteria', 'project_id', req.params.project_id);
         res.json(criteria);
@@ -29,7 +29,7 @@ router.get('/:username/project/:project_id/step2/criteria', async (req, res) => 
 });
 
 // עדכון קריטריון קיים
-router.put('/:username/project/:project_id/step2/criteria/:criterion_id', async (req, res) => {
+router.put('/:stage/criteria/:criterion_id', async (req, res) => {
     try {
         let { info_accepted } = req.body;
         info_accepted = Boolean(info_accepted);
