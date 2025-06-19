@@ -18,6 +18,22 @@ function authenticateToken(req, res, next) {
     });
 }
 
+
+function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    const role = req.user?.role;
+
+    if (!role) {
+      return res.status(401).json({ message: "Missing role in token" });
+    }
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({ message: "Access denied: role not allowed" });
+    }
+
+    next();
+  };
+}
 // // Middleware to check user permissions based on role
 // const checkPermissions = (allowedRoles, action) => {
 //   return (req, res, next) => {
@@ -54,6 +70,6 @@ function authenticateToken(req, res, next) {
 //   };
 // };
 
-module.exports = { authenticateToken, 
+module.exports = { authenticateToken,authorizeRoles 
   // checkPermissions 
 };

@@ -57,6 +57,38 @@ async function getRecordByColumns(tableName, columnsObj) {
     return rows[0] || null;
 }
 
+
+async function getRecordsByColumns(tableName, columns, whereColumn, whereValue) {
+  // בדיקות בסיסיות לשמות
+  const isValidName = name => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+  if (!isValidName(tableName) || !isValidName(whereColumn) || !columns.every(isValidName)) {
+    throw new Error('Invalid table or column name');
+  }
+  const columnList = columns.map(col => `\`${col}\``).join(', ');
+  const sql = `SELECT ${columnList} FROM \`${tableName}\` WHERE \`${whereColumn}\` = ?`;
+
+  const [rows] = await db.execute(sql, [whereValue]);
+  return rows;
+}
+
+async function getRecordsByMultipleConditions(tableName, columns, conditions) {
+  const isValidName = name => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+
+  if (!isValidName(tableName) || !columns.every(isValidName) || !Object.keys(conditions).every(isValidName)) {
+    throw new Error('Invalid table or column name');
+  }
+
+  const columnList = columns.map(col => `\`${col}\``).join(', ');
+  const whereClause = Object.keys(conditions).map(col => `\`${col}\` = ?`).join(' AND ');
+  const values = Object.values(conditions);
+
+  const sql = `SELECT ${columnList} FROM \`${tableName}\` WHERE ${whereClause}`;
+
+  const [rows] = await db.execute(sql, values);
+  return rows;
+}
+
+
 module.exports = { 
     getAllRecords, 
     getRecordByColumn, 
@@ -64,5 +96,7 @@ module.exports = {
     createRecord, 
     deleteRecord, 
     updateRecord,
-    getRecordByColumns 
+    getRecordByColumns,
+    getRecordsByColumns, 
+    getRecordsByMultipleConditions
 };
