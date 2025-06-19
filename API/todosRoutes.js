@@ -1,7 +1,7 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
-const { authenticateToken } = require('./middleware/authMiddleware/authenticateToken');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 
 // GET /todos - כל הטודואים של המשתמש המחובר (userId מהטוקן)
 router.get('/todos', authenticateToken, async (req, res) => {

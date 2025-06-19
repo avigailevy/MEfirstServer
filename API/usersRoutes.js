@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const {authenticateToken} = require("./middleware/authMiddleware/authenticateToken");
+const {authenticateToken} = require("./middlewares/authMiddleware");
 
 //ניתוב שמחזיר את כל הסוכנים
 router.get('/agents/all', authenticateToken, async (req, res) => {

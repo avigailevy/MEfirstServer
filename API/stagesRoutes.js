@@ -1,10 +1,6 @@
 const express = require('express');
-const createGenericRouter = require('./genericRouter');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
-
-const genericRouter = createGenericRouter('stages', 'stage_id', ['project_id', 'stage_number']);
-router.use('/', genericRouter);
 
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', async (req, res) => {

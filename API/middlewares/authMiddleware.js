@@ -1,7 +1,5 @@
 const jwt = require("jsonwebtoken");
-const secretKey =
-  process.env.JWT_SECRET || "Naomie&Perel@Schedule_project.2715.2969";
-const genericServices = require('../Services/genericServices');
+const secretKey =  process.env.JWT_SECRET || "Naomie&Perel@Schedule_project.2715.2969";
 
 
 function authenticateToken(req, res, next) {
@@ -10,7 +8,7 @@ function authenticateToken(req, res, next) {
 
     if (!token) return res.status(401).json({ message: "Access denied" });
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    jwt.verify(token, secretKey, (err, user) => {
         if (err) return res.status(403).json({ message: "Invalid token" });
 
         req.user = user; // שומר את המידע לצורך המשך טיפול
