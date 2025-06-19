@@ -3,6 +3,8 @@ const express = require("express");
 const app = express();
 const { google } = require('googleapis');
 const auth = require('./Services/googleServices/googleAuth');
+const cors = require('cors');
+app.use(cors());
 
 app.use(express.json()); // מאפשר שליחת JSON בבקשות
 
@@ -18,6 +20,8 @@ app.use("/:username/projects/:projectStatus", require("./API/projectsRoutes"));
 app.use("/:username/stages", require("./API/stagesRoutes"));
 app.use("/:username/:project_id/summaries", require("./API/summariesRoutes"));
 app.use("/:username/todos", require("./API/todosRoutes"));
+app.use("/login", require("./API/loginRoutes"));
+app.use("/:username/register", require("./API/registerRoutes"));
 
 // בדיקת תקינות השרת
 app.get("/", (req, res) => {
