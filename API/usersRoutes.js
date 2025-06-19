@@ -20,7 +20,7 @@ router.get('/agents/all', authenticateToken, async (req, res) => {
 });
 
 //delete a specific agent
-router.delete('/:agentId', authenticateToken, async (req, res) => {
+router.delete('/delete/:agentId', authenticateToken, async (req, res) => {
     try {
         const user = req.user;
         // בדוק אם המשתמש הוא מנהל
@@ -40,7 +40,7 @@ router.delete('/:agentId', authenticateToken, async (req, res) => {
 });
 
 //update a specific agent
-router.put('/:agentId', authenticateToken, async (req, res) => {
+router.put('/update/:agentId', authenticateToken, async (req, res) => {
     try {
         const user = req.user;
         // בדוק אם המשתמש הוא מנהל
