@@ -5,7 +5,7 @@ const genericServices = require('../Services/genericServices');
 const jwt = require("jsonwebtoken");
 
 // התחברות (log in)
-router.post('/', async (req, res) => {
+router.post('/submit', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
@@ -40,3 +40,5 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+module.exports = router;
