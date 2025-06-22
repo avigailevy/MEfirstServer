@@ -15,7 +15,7 @@ router.get('/agents/all', authenticateToken, authorizeRoles('admin'), async (req
     }
 });
 
-
+//
 router.get('/todos/users', authenticateToken, async (req, res) => {
     try {
         const role = req.user.role; // אתה צריך לקחת את ה-role מה-token (decode)
@@ -71,5 +71,18 @@ router.put('/update/:agentId', authenticateToken, async (req, res) => {
     }
 });
 
+//get a user name by the user_id
+router.get('/userName/:user_id', authenticateToken, async (req, res) => {
+    try {
+        const { user_id } = req.params;
+        const user = await genericServices.getRecordByColumn('users', 'user_id', user_id);
+        if (!user) {
+            return res.status(404).json({ error: 'user not found.' });
+        }
+        res.json({ username: user.username });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }   
+});
 
 module.exports = router;
