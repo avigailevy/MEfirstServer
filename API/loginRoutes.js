@@ -25,6 +25,8 @@ router.post('/', async (req, res) => {
     }
     // שלב 3: השווה את הסיסמה שסופקה עם הסיסמה המטוהלת
     // באמצעות bcrypt
+    
+    
     const isMatch = await bcrypt.compare(password, passwordRecord.password_hash);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid' });
