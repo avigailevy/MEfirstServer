@@ -53,7 +53,7 @@ router.post('/add/:contact_name', async (req, res) => {
     }
 });
 // מחיקת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
-router.delete('/:contact_name', async (req, res) => {
+router.delete('/delete/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
 
@@ -86,7 +86,7 @@ router.delete('/:contact_name', async (req, res) => {
     }
 });
 // עדכון איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר, כולל בדיקת הרשאות Admin
-router.put('/:contact_name', async (req, res) => {
+router.put('/update/:contact_name', async (req, res) => {
     try {
         const { username, customersOrSupliers, contact_name } = req.params;
         const updateData = req.body;
@@ -141,7 +141,5 @@ router.put('/:contact_name', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-
 
 module.exports = router;
