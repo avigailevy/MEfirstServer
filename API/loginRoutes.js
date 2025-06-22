@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     // שלב 1: מצא את המשתמש בטבלת users לפי username
     const user = await genericServices.getRecordByColumn('users', 'username', username);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid username o' });
+      return res.status(401).json({ error: 'Invalid username' });
     }
 
     // שלב 2: שלוף את הסיסמה המטוהלת מטבלת passwords לפי user_id
