@@ -3,7 +3,7 @@ const genericServices = require('../Services/genericServices');
 const router = express.Router();
 
 // קבלת כל המוצרים עבור משתמש מסוים
-router.get('/all', async (req, res) => {
+router.get('/products', async (req, res) => {
     try {
         const products = await genericServices.getAllRecords('products');
         res.json(products);
@@ -52,7 +52,7 @@ router.get('/:category/:productId', async (req, res) => {
 });
 
 // מחיקת מוצר לפי מזהה עבור משתמש מסוים
-router.delete('/:productId', async (req, res) => {
+router.delete('/products/:productId', async (req, res) => {
     try {
         const { productId } = req.params;
         await genericServices.deleteRecord('products', 'product_id', productId);

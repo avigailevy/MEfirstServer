@@ -3,13 +3,13 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 
 // קבלת הסיכומים עבור פרוייקט מסויים
-router.get('/last', async (req, res) => {
+router.get('/:projectId/summaries', async (req, res) => {
     try {
-        const { project_id } = req.params;
+        const { projectId } = req.params;
         // קבלת כל הסיכומים עבור הפרוייקט
-        const summaries = await genericServices.getAllRecordsByColumn('summaries', 'project_id', project_id);
+        const summaries = await genericServices.getAllRecordsByColumn('summaries', 'project_id', projectId);
         // מיון הסיכומים לפי מזהה (ID)
-        summaries.sort((a, b) => b.summery_id - a.summery_id);
+        summaries.sort((a, b) => b.summary_id - a.summary_id);
         res.json(summaries);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch last summaries for the project' });
@@ -19,7 +19,7 @@ router.get('/last', async (req, res) => {
 //הוספת סיכום חדש
 router.post('/add_summ', async (req, res) => {
     try {
-        const { project_id } = req.params;
+        const { projectId } = req.params;
         const { from_user_id, summary_text } = req.body;
 
         if (!from_user_id || !summary_text) {
@@ -28,7 +28,7 @@ router.post('/add_summ', async (req, res) => {
 
         // יצירת רשומה חדשה בטבלה summaries
         const summaryRecord = await genericServices.createRecord('summaries', {
-            project_id,
+            project_id: projectId,
             from_user_id,
             summery_time: new Date(), // הוספת זמן הסיכום
             summery_text // שים לב: שם העמודה בטבלה הוא summery_text, לא summary_text
