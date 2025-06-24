@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
-// const authenticateToken = require('../middleware/auth');
-// const authorizeUser = require('../middleware/authorizeUser');
+const {authenticateToken} = require('./middlewares/authMiddleware');
 
 // Get projects by username and status (open or closed)
 router.get('/all',authenticateToken, async (req, res) => {
