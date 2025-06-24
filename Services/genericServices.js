@@ -89,6 +89,22 @@ async function getRecordsByMultipleConditions(tableName, columns, conditions) {
 }
 
 
+//for recent projects
+async function getAllRecordsByColumns({ tableName, columnsObj, orderBy, limit }) {
+    const columns = Object.keys(columnsObj);
+    const values = Object.values(columnsObj);
+    const whereClause = columns.map(col => `\`${col}\` = ?`).join(' AND ');
+    
+    let query = `SELECT * FROM \`${tableName}\` WHERE ${whereClause}`;
+    
+    if (orderBy) query += ` ORDER BY \`${orderBy}\` DESC`;
+    if (limit) query += ` LIMIT ${limit}`;
+
+    const [rows] = await db.query(query, values);
+    return rows;
+}
+
+
 module.exports = { 
     getAllRecords, 
     getRecordByColumn, 
@@ -98,5 +114,6 @@ module.exports = {
     updateRecord,
     getRecordByColumns,
     getRecordsByColumns, 
-    getRecordsByMultipleConditions
+    getRecordsByMultipleConditions,
+    getAllRecordsByColumns
 };
