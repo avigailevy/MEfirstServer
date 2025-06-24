@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
-const {authenticateToken} = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
+
+// const authenticateToken = require('../middleware/auth');
+// const authorizeUser = require('../middleware/authorizeUser');
 
 // Get projects by username and status (open or closed)
-router.get('/all',authenticateToken, async (req, res) => {
+router.get('/all', authenticateToken, async (req, res) => {
 
     try {
         let statusArray;
@@ -30,14 +33,23 @@ router.get('/all',authenticateToken, async (req, res) => {
 });
 
 //get recent projects
-router.get('/recent'), authenticateToken, async (req,res)=>{
+router.get('/recent', authenticateToken, async (req, res) => {
     try {
-        const {user_id} = req.user.userId;
-        const recentProjects=genericServices.getAllRecordsByColumns('projects', ['user_id', 'ast_visit_time'], [user_id, ])
-    } catch (error) {
+        const user_id = req.user.user_id; 
+
+        const recentProjects = await genericServices.getAllRecordsByColumns({
+            tableName: 'projects',
+            columnsObj: { user_id },
+            orderBy: 'last_visit_time',
+            limit: 4
+        });
+
+        res.json(recentProjects);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
-}
+});
+
 
 // Update a project by username and status (open or closed)
 router.put('/:projectId',
