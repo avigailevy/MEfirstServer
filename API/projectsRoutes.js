@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
-const { authenticateToken } = require('./middlewares/authMiddleware');
+const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
 
 // const authenticateToken = require('../middleware/auth');
 // const authorizeUser = require('../middleware/authorizeUser');
@@ -35,7 +35,7 @@ router.get('/all', authenticateToken, async (req, res) => {
 //get recent projects
 router.get('/recent', authenticateToken, async (req, res) => {
     try {
-        const user_id = req.user.user_id; 
+        const user_id = req.user.user_id;
 
         const recentProjects = await genericServices.getAllRecordsByColumns({
             tableName: 'projects',
@@ -181,4 +181,16 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+//ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
+router.get('/:projectStatus/:agentId', authenticateToken, authorizeRoles('admin'), (req, res) => {
+    try {
+        const { projectStatus, agentId } = req.params;
+        const agentProjects = genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
+        res.status(201).json(agentProjects);
+    } catch (error) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
 module.exports = router;

@@ -18,7 +18,7 @@ async function getAllRecordsByColumn(tableName, columnName, value) {
         `SELECT * FROM ?? WHERE ?? = ?`,
         [tableName, columnName, value]
     );
-    return [rows];
+    return rows;
 }
 
 async function getRecordByColumns(tableName, columnsObj) {
