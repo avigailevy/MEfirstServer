@@ -4,10 +4,10 @@ const router = express.Router();
 const { authenticateToken } = require('./middlewares/authMiddleware');
 
 // GET /todos - כל הטודואים של המשתמש המחובר (userId מהטוקן)
-router.get('/todos', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const [todos] = await genericServices.getAllRecordsByColumn('todos', 'user_id', userId);
+        const todos = await genericServices.getAllRecordsByColumn('todos', 'to_user_id', userId);
         res.json(todos);
     } catch (err) {
         res.status(500).json({ error: err.message });

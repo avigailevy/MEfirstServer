@@ -1,6 +1,7 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
+const {authenticateToken} = require('./middlewares/authMiddleware');
 
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', async (req, res) => {

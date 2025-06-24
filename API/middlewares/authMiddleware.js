@@ -1,20 +1,26 @@
 const jwt = require("jsonwebtoken");
-const secretKey =  process.env.JWT_SECRET || "Naomie&Perel@Schedule_project.2715.2969";
+require('dotenv').config();
+const secretKey = process.env.JWT_SECRET || "ma!av?43183221so$le@";
 
 
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // 'Bearer TOKEN'
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.status(401).json({ message: "Access denied" });
+  if (!token) {
+    return res.status(401).json({ message: "Access denied" });
+  }
 
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) return res.status(403).json({ message: "Invalid token" });
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
 
-        req.user = user; // שומר את המידע לצורך המשך טיפול
-        next();
-    });
+    req.user = user;
+    next();
+  });
 }
+
 
 
 function authorizeRoles(...allowedRoles) {
@@ -68,6 +74,4 @@ function authorizeRoles(...allowedRoles) {
 //   };
 // };
 
-module.exports = { authenticateToken,authorizeRoles 
-  // checkPermissions 
-};
+module.exports = { authenticateToken,authorizeRoles};
