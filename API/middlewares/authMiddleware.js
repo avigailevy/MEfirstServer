@@ -21,8 +21,6 @@ function authenticateToken(req, res, next) {
   });
 }
 
-
-
 function authorizeRoles(...allowedRoles) {
   return (req, res, next) => {
     const role = req.user?.role;

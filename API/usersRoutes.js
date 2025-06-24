@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const {authenticateToken} = require("./middlewares/authMiddleware");
-const {authorizeRoles} = require("./middlewares/authMiddleware");
+const { authenticateToken, authorizeRoles } = require("./middlewares/authMiddleware");
 
 
 // מחזיר את כל הסוכנים - רק למנהלים
@@ -72,7 +71,7 @@ router.get('/userName/:user_id', authenticateToken, async (req, res) => {
         res.json({ username: user.username });
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }   
+    }
 });
 
 module.exports = router;
