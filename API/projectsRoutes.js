@@ -4,12 +4,9 @@ const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
 const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
 
-// const authenticateToken = require('../middleware/auth');
-// const authorizeUser = require('../middleware/authorizeUser');
-
 // Get projects by username and status (open or closed)
 router.get('/all', authenticateToken, async (req, res) => {
-
+    console.log('Incoming params:', req.params);
     try {
         let statusArray;
         if (req.params.projectStatus === 'open') {
@@ -183,9 +180,10 @@ router.post('/', async (req, res) => {
 });
 
 //ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
-router.get('/:agentId', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+router.get('/:agentName', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
-        const { agentId } = req.params;   
+        const { agentName } = req.params;  
+        const agentId = await genericServices.getRecordByColumn('users', 'username', agentName).user_id; 
         const agentProjects = await genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
         console.log("allAgentProjects:", agentProjects);
         

@@ -38,7 +38,13 @@ async function createRecord(tableName, record) {
 }
 
 async function deleteRecord(tableName, columnName, id) {
-    await db.query(`DELETE FROM ?? WHERE ?? = ?`, [tableName, columnName, id]);
+    try {
+        const [result] = await db.query(`DELETE FROM ?? WHERE ?? = ?`, [tableName, columnName, id]);
+        return result;
+    } catch (err) {
+        console.error(`Error deleting from ${tableName}:`, err);
+        throw err;
+    }
 }
 
 async function updateRecord(tableName, columnName, id, record) {

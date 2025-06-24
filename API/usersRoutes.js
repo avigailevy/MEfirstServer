@@ -29,12 +29,9 @@ router.delete('/delete/:agentId', authenticateToken, authorizeRoles('admin'), as
     try {
         const agentId = req.params.agentId;
         const result = await genericServices.getRecordByColumn('users', 'user_id', agentId);
-        if (result) {
-            res.json({ message: 'Agent updated successfully' });
-        } else {
-            res.status(404).json({ error: 'Agent not found' });
+        if (!result) {
+            return res.status(404).json({ error: 'Agent not found' });
         }
-
         await genericServices.deleteRecord('users', 'user_id', agentId);
         res.json({ message: 'Agent deleted successfully' });
     } catch (err) {
