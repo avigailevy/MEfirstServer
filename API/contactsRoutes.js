@@ -6,7 +6,7 @@ const {authenticateToken} = require('./middlewares/authMiddleware');
 // החזרת כל אנשי הקשר לפי סוג(ספק/לקוח) של משתמש 
 router.get('/all', authenticateToken, async (req, res) => {
     try {
-        const { username, customersOrSupliers } = req.params;
+        const {customersOrSupliers } = req.params;
         const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
         res.json(allContacts);
     }

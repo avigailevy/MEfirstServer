@@ -15,26 +15,6 @@ router.get('/agents/all', authenticateToken, authorizeRoles('admin'), async (req
     }
 });
 
-//
-router.get('/todos/users', authenticateToken, async (req, res) => {
-    try {
-        const role = req.user.role; // אתה צריך לקחת את ה-role מה-token (decode)
-
-        let users;
-        if (role === 'admin') {
-            getRecordsByColumns(tableName, columns, whereColumn, whereValue)
-            users = await genericServices.getRecordsByColumns('users','username','role', 'agent');
-        } else {
-            users = await genericServices.getAllRecordsByColumn('users', 'role', 'admin');
-        }
-
-        res.json(users);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-
 //delete a specific agent
 router.delete('/delete/:agentId', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {

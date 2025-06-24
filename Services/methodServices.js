@@ -46,6 +46,8 @@ async function countRecords( datePrefix) {
     return rows[0].count;
 }
 
+
+
 module.exports = {
   validateProjectUpdate,
   countRecords
