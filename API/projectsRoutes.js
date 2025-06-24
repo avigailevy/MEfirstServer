@@ -185,8 +185,10 @@ router.post('/', async (req, res) => {
 //ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
 router.get('/:agentId', authenticateToken, authorizeRoles('admin'), (req, res) => {
     try {
-        const { projectStatus, agentId } = req.params;
+        const { agentId } = req.params;   
         const agentProjects = genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
+        console.log("allAgentProjects:", agentProjects);
+        
         res.status(201).json(agentProjects);
     } catch (error) {
         res.status(500).json({ error: err.message });

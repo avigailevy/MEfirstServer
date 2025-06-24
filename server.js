@@ -18,7 +18,6 @@ app.use("/originalDocs", require("./API/originalDocsRoutes"));
 app.use("/:username/passwords", require("./API/passwordsRoutes"));
 app.use("/:username/products", require("./API/productsRoutes"));
 app.use("/:username/products/:productId", require("./API/productsRoutes"));
-
 app.use("/:username/projects/:projectStatus", require("./API/projectsRoutes"));
 app.use("/:username/stages", require("./API/stagesRoutes"));
 app.use("/:username/:project_id/summaries", require("./API/summariesRoutes"));
