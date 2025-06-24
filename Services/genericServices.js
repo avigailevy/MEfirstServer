@@ -70,7 +70,12 @@ async function getRecordsByColumns(tableName, columns, whereColumn, whereValue) 
   const [rows] = await db.execute(sql, [whereValue]);
   return rows;
 }
-
+async function getRecordsWhereInWithFilter(table, inColumn, inValues, filterColumn, filterValue) {
+  const placeholders = inValues.map(() => '?').join(',');
+  const sql = `SELECT * FROM \`${table}\` WHERE \`${inColumn}\` IN (${placeholders}) AND \`${filterColumn}\` = ?`;
+  const [rows] = await db.query(sql, [...inValues, filterValue]);
+  return rows;
+}
 async function getRecordsByMultipleConditions(tableName, columns, conditions) {
   const isValidName = name => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 
@@ -112,6 +117,7 @@ module.exports = {
     createRecord, 
     deleteRecord, 
     updateRecord,
+    getRecordsWhereInWithFilter,
     getRecordByColumns,
     getRecordsByColumns, 
     getRecordsByMultipleConditions,

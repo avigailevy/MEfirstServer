@@ -8,29 +8,34 @@ const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddlew
 // const authorizeUser = require('../middleware/authorizeUser');
 
 // Get projects by username and status (open or closed)
-router.get('/all', authenticateToken, async (req, res) => {
+router.get('/:projectStatus', authenticateToken, async (req, res) => {
+  try {
+    const { projectStatus } = req.params;
+    const userId = req.user.userId;
 
-    try {
-        let statusArray;
-        if (req.params.projectStatus === 'open') {
-            statusArray = ['on hold', 'live project']; // Open projects
-        } else if (req.params.projectStatus === 'closed') {
-            statusArray = ['closed']; // Closed projects
-        } else {
-            return res.status(400).json({ error: 'Invalid status parameter' });
-        }
-
-        // Fetch projects by owner username and status
-        const projects = await genericServices.getAllRecordsByColumn(
-            'projects',
-            "status",
-            req.params.status
-        );
-        res.json(projects);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    let status;
+    if (projectStatus === 'open') {
+      status = ['on hold', 'live project'];
+    } else if (projectStatus === 'close') {
+      status = ['closed'];
+    } else {
+      return res.status(400).json({ error: 'Invalid status parameter' });
     }
+
+    const projects = await genericServices.getRecordsWhereInWithFilter(
+      'projects',        // table name
+      'status',          // column for IN (...)
+      status,            // array of values
+      'owner_user_id',   // additional filter column
+      userId             // value to filter by
+    );
+
+    res.json(projects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 //get recent projects
 router.get('/recent', authenticateToken, async (req, res) => {
