@@ -1,19 +1,21 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
+const {authenticateToken} = require('./middlewares/authMiddleware');
 
-// קבלת כל המוצרים עבור משתמש מסוים
-router.get('/products', async (req, res) => {
-    try {
-        const products = await genericServices.getAllRecords('products');
-        res.json(products);
-    } catch (err) {
-        res.status(500).json({ error: 'Database error', details: err.message });
-    }
+
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const products = await genericServices.getAllRecords('products');
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
 });
 
+
 // קבלת מוצר מסוים לפי מזהה עבור משתמש מסוים
-router.get('/:productId', async (req, res) => {    
+router.get('/:productId', authenticateToken, async (req, res) => {    
     try {
         const { productId } = req.params;
         const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
@@ -27,7 +29,7 @@ router.get('/:productId', async (req, res) => {
 });
 
 // קבלת כל המוצרים לפי קטגוריה עבור משתמש מסוים
-router.get('/:category/all', async (req, res) => {
+router.get('/:category/all',authenticateToken, async (req, res) => {
     try {
         const { category } = req.params;
         const products = await genericServices.getAllRecordsByColumn('products', 'category', category);
@@ -38,7 +40,7 @@ router.get('/:category/all', async (req, res) => {
 });
 
 // קבלת מוצר לפי מזהה עבור משתמש מסוים וקטגוריה
-router.get('/:category/:productId', async (req, res) => {
+router.get('/:category/:productId',authenticateToken, async (req, res) => {
     try {
         const { productId } = req.params;
         const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
@@ -52,7 +54,7 @@ router.get('/:category/:productId', async (req, res) => {
 });
 
 // מחיקת מוצר לפי מזהה עבור משתמש מסוים
-router.delete('/products/:productId', async (req, res) => {
+router.delete('/products/:productId', authenticateToken, async (req, res) => {
     try {
         const { productId } = req.params;
         await genericServices.deleteRecord('products', 'product_id', productId);
@@ -67,7 +69,7 @@ router.delete('/products/:productId', async (req, res) => {
 });
 
 // עדכון מוצר לפי מזהה עבור משתמש מסוים
-router.put('/:productId', async (req, res) => {
+router.put('/:productId', authenticateToken, async (req, res) => {
     try {
         const { productId } = req.params;
         const updatedData = req.body;
