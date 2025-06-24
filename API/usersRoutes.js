@@ -5,6 +5,16 @@ const { authenticateToken, authorizeRoles } = require("./middlewares/authMiddlew
 
 
 // מחזיר את כל הסוכנים - רק למנהלים
+router.get('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+    try {
+        const agents = await genericServices.getAllRecords('users');
+        res.json(agents);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// מחזיר את כל הסוכנים - רק למנהלים
 router.get('/agents/all', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
         const agents = await genericServices.getAllRecordsByColumn('users', 'role', 'agent');
