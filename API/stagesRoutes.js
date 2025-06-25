@@ -26,8 +26,11 @@ router.get('/:project_id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
     }
 });
-// קבלת שלב ספציפי לפי מזהה פרוייקט ומזהה שלב
-router.put('/:project_id/:stage_id/completed', authenticateToken, async (req, res) => {
+
+
+
+// עדכון שלב ספציפי לפי מזהה שלב
+router.put('/:stage_id/completed', authenticateToken, async (req, res) => {
     try {
         const { stage_id } = req.params;
         const { completed } = req.body;
