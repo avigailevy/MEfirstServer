@@ -3,6 +3,20 @@ const genericServices = require('../Services/genericServices');
 const router = express.Router();
 const {authenticateToken} = require('./middlewares/authMiddleware');
 
+
+
+// קבלת כל השלבים של פרויקט מסוים
+router.get('/:stage_id', authenticateToken, async (req, res) => {
+  const { stage_id } = req.params;
+  try {
+    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
+    if (!stage) return res.status(404).json({ error: 'Stage not found' });
+    res.json(stage);
+  } catch (err) {
+    console.error('Error fetching stage:', err);
+    res.status(500).json({ error: 'Failed to fetch stage' });
+  }
+});
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', authenticateToken, async (req, res) => {
     try {
