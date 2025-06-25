@@ -16,6 +16,48 @@ router.get('/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stage' });
   }
 });
+
+router.put('/:stage_id', authenticateToken, async (req, res) => {
+  const { stage_id } = req.params;
+  const { extend_stage_1 } = req.body;
+
+  if (typeof extend_stage_1 !== 'string') {
+    return res.status(400).json({ error: 'Invalid extend_stage_1 format' });
+  }
+
+  try {
+    const updated = await genericServices.updateRecordColumn(
+      'stages',
+      'stage_id',
+      stage_id,
+      'extend_stage_1',
+      extend_stage_1
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Stage not found or not updated' });
+    }
+
+    res.json({ message: 'Stage checklist updated successfully' });
+  } catch (error) {
+    console.error('Error updating stage:', error);
+    res.status(500).json({ error: 'Failed to update stage' });
+  }
+});
+
+router.get('/:stage_id', authenticateToken, async (req, res) => {
+  const { stage_id } = req.params;
+  try {
+    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
+    if (!stage) {
+      return res.status(404).json({ error: 'Stage not found' });
+    }
+    res.json(stage);
+  } catch (error) {
+    console.error('Error fetching stage:', error);
+    res.status(500).json({ error: 'Failed to fetch stage' });
+  }
+});
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', authenticateToken, async (req, res) => {
     try {
