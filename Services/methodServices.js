@@ -1,4 +1,4 @@
-const db = require("./db.js");
+const db = require("./db");
 
 function validateProjectUpdate(project, updateData) {
     const allowedStatuses = ['on hold', 'live project', 'closed'];
