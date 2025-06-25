@@ -28,7 +28,6 @@ router.post('/:stageId/create', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
         const { docId, url } = await createGoogleDoc(title);
-        // אפשרות להעניק הרשאות לכל מי שיש לו קישור
         await drive.permissions.create({
             fileId: docId,
             requestBody: {
@@ -36,7 +35,6 @@ router.post('/:stageId/create', async (req, res) => {
                 type: 'anyone',
             },
         });
-
         const newDoc = genericServices.createRecord('documents', {
             stage_id: stageId,
             doc_type: docType,
@@ -44,7 +42,6 @@ router.post('/:stageId/create', async (req, res) => {
             file_path: url,
             uploaded_y: uploadedBy
         })
-
         res.json({ success: true, docId, url });
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
