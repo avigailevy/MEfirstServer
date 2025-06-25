@@ -1,21 +1,45 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require('./middlewares/authMiddleware');
-const { param } = require('./usersRoutes');
 const router = express.Router({ mergeParams: true });
 
 
 // החזרת כל אנשי הקשר לפי סוג(ספק/לקוח) של משתמש 
+// router.get('/', authenticateToken, async (req, res) => {
+//     try {
+//         const {customersOrSupliers } = req.params;
+//         const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
+//         res.json(allContacts);
+//     }
+//     catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// })
 router.get('/', authenticateToken, async (req, res) => {
-    try {
-        const {customersOrSupliers } = req.params;
-        const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
-        res.json(allContacts);
+  try {
+    let { customersOrSuppliers } = req.params;
+
+    // המרה לרשימה חוקית של contact_type
+    if (customersOrSuppliers === 'customers') {
+      customersOrSuppliers = 'customer';
+    } else if (customersOrSuppliers === 'suppliers') {
+      customersOrSuppliers = 'supplier';
+    } else {
+      return res.status(400).json({ error: 'Invalid contact type' });
     }
-    catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-})
+
+    const allContacts = await genericServices.getAllRecordsByColumn(
+      'contacts',
+      'contact_type',
+      customersOrSuppliers
+    );
+
+    res.json(allContacts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // הוספת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
 router.post('/add/:contact_name', authenticateToken, async (req, res) => {
     try {
