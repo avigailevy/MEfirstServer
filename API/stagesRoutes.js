@@ -4,8 +4,7 @@ const router = express.Router();
 const {authenticateToken} = require('./middlewares/authMiddleware');
 
 
-
-// קבלת כל השלבים של פרויקט מסוים
+//get a specific stage by stage_id
 router.get('/:stage_id', authenticateToken, async (req, res) => {
   const { stage_id } = req.params;
   try {
