@@ -10,7 +10,6 @@ app.use(express.json()); // מאפשר שליחת JSON בבקשות
 
 // נתיבים
 app.use("/:username/users", require("./API/usersRoutes"));
-app.use("/:username/contacts", require("./API/contactsRoutes"));
 app.use("/:username/contacts/:customersOrSuppliers", require("./API/contactsRoutes"));
 app.use("/:username/documents", require("./API/documentsRoutes"));
 app.use("/originalDocs", require("./API/originalDocsRoutes"));
