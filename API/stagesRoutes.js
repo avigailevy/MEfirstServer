@@ -4,7 +4,7 @@ const router = express.Router();
 const {authenticateToken} = require('./middlewares/authMiddleware');
 
 // קבלת כל השלבים של פרויקט מסוים
-router.get('/:project_id', async (req, res) => {
+router.get('/:project_id', authenticateToken, async (req, res) => {
     try {
         const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", req.params);
         res.json(stages);
@@ -13,7 +13,7 @@ router.get('/:project_id', async (req, res) => {
     }
 });
 // קבלת שלב ספציפי לפי מזהה פרוייקט ומזהה שלב
-router.put('/:project_id/:stage_id/completed', async (req, res) => {
+router.put('/:project_id/:stage_id/completed', authenticateToken, async (req, res) => {
     try {
         const { stage_id } = req.params;
         const { completed } = req.body;
@@ -32,7 +32,7 @@ router.put('/:project_id/:stage_id/completed', async (req, res) => {
     }
 });
 // קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
-router.get('/:project_id/next', async (req, res) => {
+router.get('/:project_id/next', authenticateToken, async (req, res) => {
     try {
         const { project_id } = req.params;
         // Get all stages for the project, ordered by stage_id
