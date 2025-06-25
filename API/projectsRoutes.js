@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
 const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
