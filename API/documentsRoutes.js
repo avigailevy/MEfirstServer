@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const { createGoogleDoc, deleteGoogleDoc } = require('../services/googleDocsService');
+const { createGoogleDoc, deleteGoogleDoc } = require('../Services/googleServices/googleDocsService');
 const db = require('../Services/db');
-const { drive } = require('../services/googleDrive'); // ודא שזה מיובא
+// const { drive } = require('../../Services/googleDrive'); // ודא שזה מיובא
 
 // Get file_path by stageId
 router.get('/:stageId', async (req, res) => {

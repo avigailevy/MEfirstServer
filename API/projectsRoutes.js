@@ -4,11 +4,35 @@ const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
 const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
 
-// Get projects by username and status (open or closed)
-router.get('/all', authenticateToken, async (req, res) => {
+
+
+//ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
+router.get('/:agentName', authenticateToken, async (req, res) => {
+  try {
+    const { agentName } = req.params;
+
+    const agent = await genericServices.getRecordByColumn('users', 'username', agentName);
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' });
+    }
+
+    const agentId = agent.user_id;
+
+    const agentProjects = await genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
+    console.log("allAgentProjects:", agentProjects);
+
+    res.status(200).json(agentProjects);
+  } catch (err) {
+    console.error("Error fetching agent projects:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.get('/:projectStatus/all', authenticateToken, async (req, res) => {
   try {
     const { projectStatus } = req.params;
-    const userId = req.user.userId;
+    const { userId, role } = req.user;  // נשלף מתוך ה־JWT
 
     let status;
     if (projectStatus === 'open') {
@@ -19,15 +43,58 @@ router.get('/all', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid status parameter' });
     }
 
-    const projects = await genericServices.getRecordsWhereInWithFilter(
-      'projects',        // table name
-      'status',          // column for IN (...)
-      status,            // array of values
-      'owner_user_id',   // additional filter column
-      userId             // value to filter by
-    );
+    let projects;
+
+    if (role === 'admin') {
+      projects = await genericServices.getRecordsWhereIn(
+        'projects',
+        'status',
+        status,
+      );
+    } else {
+      // משתמש רגיל רואה רק את שלו
+      projects = await genericServices.getRecordsWhereInWithFilter(
+        'projects',
+        'status',
+        status,
+        'owner_user_id',
+        userId
+      );
+    }
 
     res.json(projects);
+  } catch (err) {
+    console.error('Error fetching projects:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+//get recent projects
+router.get('/recent', authenticateToken, async (req, res) => {
+  try {
+    const user_id = req.user.user_id;
+
+    const recentProjects = await genericServices.getAllRecordsByColumns({
+      tableName: 'projects',
+      columnsObj: { owner_user_id: user_id }, // ⬅️ שונה לשם הנכון
+      orderBy: 'last_visit_time',
+      limit: 4
+    });
+
+    res.json(recentProjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/:project_id/visit', authenticateToken, async (req, res) => {
+  try {
+    const { project_id } = req.params;
+    await genericServices.updateRecord('projects', 'project_id', project_id, {
+      last_visit_time: new Date()
+    });
+    res.sendStatus(204);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -56,23 +123,6 @@ router.get('/:projectId', authenticateToken, async (req, res) => {
 });
 
 
-//get recent projects
-router.get('/recent', authenticateToken, async (req, res) => {
-    try {
-        const user_id = req.user.user_id;
-
-        const recentProjects = await genericServices.getAllRecordsByColumns({
-            tableName: 'projects',
-            columnsObj: { user_id },
-            orderBy: 'last_visit_time',
-            limit: 4
-        });
-
-        res.json(recentProjects);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 
 // Update a project by username and status (open or closed)
@@ -206,18 +256,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-//ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
-router.get('/:agentName', authenticateToken, authorizeRoles('admin'), async (req, res) => {
-    try {
-        const { agentName } = req.params;  
-        const agentId = await genericServices.getRecordByColumn('users', 'username', agentName).user_id; 
-        const agentProjects = await genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
-        console.log("allAgentProjects:", agentProjects);
-        
-        res.status(201).json(agentProjects);
-    } catch (error) {
-        res.status(500).json({ error: err.message });
-    }
-})
+
 
 module.exports = router;
