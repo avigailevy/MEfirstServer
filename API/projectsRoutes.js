@@ -33,6 +33,28 @@ router.get('/all', authenticateToken, async (req, res) => {
   }
 });
 
+// GET /:username/projects/:projectId
+router.get('/:projectId', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const project = await genericServices.getRecordByColumns('projects', {
+      project_id: projectId,
+      owner_user_id: userId,
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.json(project);
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    res.status(500).json({ error: 'Failed to fetch project' });
+  }
+});
+
 
 //get recent projects
 router.get('/recent', authenticateToken, async (req, res) => {
