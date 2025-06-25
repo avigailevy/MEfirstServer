@@ -1,11 +1,12 @@
 const express = require('express');
-const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require('./middlewares/authMiddleware');
+const { param } = require('./usersRoutes');
+const router = express.Router({ mergeParams: true });
 
 
 // החזרת כל אנשי הקשר לפי סוג(ספק/לקוח) של משתמש 
-router.get('/:customersOrSupliers', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const {customersOrSupliers } = req.params;
         const allContacts = await genericServices.getAllRecordsByColumn('contacts', 'contact_type', customersOrSupliers);
