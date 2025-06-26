@@ -207,8 +207,8 @@ router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+  //מתבצע בשרת כדי שלא יהיו כפילויות במקרה של עבודה בשני מחשבים במקביל
     try {
-        // Validate status group       
         let statusArray;
         if (req.params.projectStatus === 'open') {
             statusArray = ['on hold', 'live project'];
@@ -217,9 +217,7 @@ router.post('/', async (req, res) => {
         } else {
             return res.status(400).json({ error: 'Invalid status parameter' });
         }
-        // Validate required fields
         const { project_name, status, supplier_id, customer_id } = req.body;
-        // Generate project_id with date prefix + counter
         const now = new Date();
         const day = String(now.getDate()).padStart(2, '0');
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -233,13 +231,11 @@ router.post('/', async (req, res) => {
         if (!project_name || !owner_user_id) {
             return res.status(400).json({ error: 'Project name is required.' });
         }
-        // Validate status
         const allowedStatuses = ['on hold', 'live project', 'closed'];
         const projectStatus = status && allowedStatuses.includes(status) ? status : statusArray[0];
         if (!statusArray.includes(projectStatus)) {
             return res.status(400).json({ error: 'Status does not match the requested group.' });
         }
-        // Get owner_user_id (should be from token, not from params for security)
         const newProject = {
             project_id,
             project_name,
