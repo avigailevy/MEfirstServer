@@ -206,7 +206,7 @@ router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/:projectStatus', async (req, res) => {
   //מתבצע בשרת כדי שלא יהיו כפילויות במקרה של עבודה בשני מחשבים במקביל
     try {
         let statusArray;
