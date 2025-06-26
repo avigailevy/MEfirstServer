@@ -29,7 +29,45 @@ async function deleteGoogleDoc(docId) {
   await drive.files.delete({ fileId: docId });
 }
 
+async function createFolder(name, parentId = null) {
+  const fileMetadata = {
+    name,
+    mimeType: 'application/vnd.google-apps.folder',
+    parents: parentId ? [parentId] : [],
+  };
+  const folder = await drive.files.create({
+    resource: fileMetadata,
+    fields: 'id',
+  });
+  return folder.data.id;
+}
+
+async function copyFile(originalFileId, newName, parentFolderId) {
+  const copiedFile = await drive.files.copy({
+    fileId: originalFileId,
+    resource: {
+      name: newName,
+      parents: [parentFolderId],
+    },
+  });
+  return copiedFile.data.id;
+}
+
+async function createProjectStructure(projectName, originalDocsMap) {
+  const projectFolderId = await createFolder(projectName, projectsRootFolderId); // תיקיית הפרויקט בתוך "Projects"
+
+  for (const [docTypeName, originalDocId] of Object.entries(originalDocsMap)) {
+    const docTypeFolderId = await createFolder(docTypeName, projectFolderId); // לדוגמה: "חוזה"
+    await copyFile(originalDocId, `${docTypeName} - ${projectName}`, docTypeFolderId); // לדוגמה: "חוזה - פרויקט א"
+  }
+
+  return projectFolderId;
+}
+
+
 module.exports = {
   createGoogleDoc,
   deleteGoogleDoc,
+  createFolder,
+
 };

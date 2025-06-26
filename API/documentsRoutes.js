@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const { createGoogleDoc, deleteGoogleDoc } = require('../services/googleDocsService');
-const db = require('../Services/db');
-const { drive } = require('../services/googleDrive'); // ודא שזה מיובא
+const { createGoogleDoc, deleteGoogleDoc } = require('../services/googleServices/googleDocsService');
+const { drive } = require('../Services/googleServices/googleDrive'); 
+const {authenticateToken} = require('./middlewares/authMiddleware');
 
 // Get file_path by stageId
-router.get('/:stageId', async (req, res) => {
+router.get('/:stageId', authenticateToken, async (req, res) => {
   try {
     const { stageId } = req.params;
     const results = await genericServices.getRecordsByColumns('documents', ['file_path'], 'stage_id', stageId);
@@ -21,7 +21,7 @@ router.get('/:stageId', async (req, res) => {
 });
 
 // Add new document to stage
-router.post('/:stageId/create', async (req, res) => {
+router.post('/:stageId/create', authenticateToken, async (req, res) => {
   try {
     const { title, projectId, docType, docVersion, uploadedBy } = req.body;
     const { stageId } = req.params;
@@ -61,12 +61,12 @@ router.post('/:stageId/create', async (req, res) => {
 });
 
 // Delete doc by ID
-router.delete('/:docId', async (req, res) => {
+router.delete('/:docId', authenticateToken,async (req, res) => {
   try {
     const docId = req.params.docId;
     await deleteGoogleDoc(docId);
-    await db.query('DELETE FROM documents WHERE document_id = ?', [docId]);
-    res.json({ success: true });
+    await genericServices.deleteRecord('documents', 'document_id', docId);
+    res.sendStatus(200).json({ success: true });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error deleting Google Doc');

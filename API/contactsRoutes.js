@@ -1,6 +1,6 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
-const {authenticateToken} = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
 
@@ -16,28 +16,28 @@ const router = express.Router({ mergeParams: true });
 //     }
 // })
 router.get('/', authenticateToken, async (req, res) => {
-  try {
-    let { customersOrSuppliers } = req.params;
+    try {
+        let { customersOrSuppliers } = req.params;
 
-    // המרה לרשימה חוקית של contact_type
-    if (customersOrSuppliers === 'customers') {
-      customersOrSuppliers = 'customer';
-    } else if (customersOrSuppliers === 'suppliers') {
-      customersOrSuppliers = 'supplier';
-    } else {
-      return res.status(400).json({ error: 'Invalid contact type' });
+        // המרה לרשימה חוקית של contact_type
+        if (customersOrSuppliers === 'customers') {
+            customersOrSuppliers = 'customer';
+        } else if (customersOrSuppliers === 'suppliers') {
+            customersOrSuppliers = 'supplier';
+        } else {
+            return res.status(400).json({ error: 'Invalid contact type' });
+        }
+
+        const allContacts = await genericServices.getAllRecordsByColumn(
+            'contacts',
+            'contact_type',
+            customersOrSuppliers
+        );
+
+        res.json(allContacts);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-
-    const allContacts = await genericServices.getAllRecordsByColumn(
-      'contacts',
-      'contact_type',
-      customersOrSuppliers
-    );
-
-    res.json(allContacts);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 // הוספת איש קשר לפי שם משתמש, סוג (לקוח/ספק) ושם איש קשר.
@@ -179,7 +179,7 @@ router.get('/contactName/:contact_id', authenticateToken, async (req, res) => {
         res.json({ contact_name: contact.contact_name });
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }   
+    }
 });
 
 
