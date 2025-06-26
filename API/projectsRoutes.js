@@ -206,7 +206,7 @@ router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/:projectStatus', async (req, res) => {
     try {
         // Validate status group       
         let statusArray;
