@@ -206,7 +206,7 @@ router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
     }
 });
 
-router.post('/:projectStatus', async (req, res) => {
+router.post('/:projectStatus', authenticateToken, async (req, res) => {
   //מתבצע בשרת כדי שלא יהיו כפילויות במקרה של עבודה בשני מחשבים במקביל
     try {
         let statusArray;
@@ -217,7 +217,8 @@ router.post('/:projectStatus', async (req, res) => {
         } else {
             return res.status(400).json({ error: 'Invalid status parameter' });
         }
-        const { project_name, status, supplier_id, customer_id } = req.body;
+        const { project_name, status, supplier_id, customer_id} = req.body;
+        const owner_user_id = 215589318;
         const now = new Date();
         const day = String(now.getDate()).padStart(2, '0');
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -227,7 +228,6 @@ router.post('/:projectStatus', async (req, res) => {
         const project_id = Number(`${prefix}${serial}`);
         console.log("count:", count);
         console.log("prefix:", prefix);
-        const owner_user_id = 329674543;
         if (!project_name || !owner_user_id) {
             return res.status(400).json({ error: 'Project name is required.' });
         }
