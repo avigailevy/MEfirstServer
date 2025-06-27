@@ -25,7 +25,7 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
 
     const parentId = folders[0].id;
 
-    // שלב 2: יצירת תיקייה חדשה בתוך תיקיית האב
+    // שלב 2: יצירת תיקיית הפרויקט בתוך תיקיית האב
     const createResponse = await drive.files.create({
       resource: {
         name: name,
@@ -35,12 +35,43 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
       fields: 'id',
     });
 
-    res.status(200).json({ folderId: createResponse.data.id });
+    const projectFolderId = createResponse.data.id;
+
+    // שלב 3: יצירת 9 תיקיות קבועות בתוך תיקיית הפרויקט
+    const subFolders = [
+      "CIF", "9CheckList", "RFQ", "LOI",
+      "FCO", "SPA", "ICPO", "Summaries", "Quote"
+    ];
+
+    const createdSubFolders = [];
+
+    for (const subFolder of subFolders) {
+      const subFolderRes = await drive.files.create({
+        resource: {
+          name: subFolder,
+          mimeType: 'application/vnd.google-apps.folder',
+          parents: [projectFolderId],
+        },
+        fields: 'id, name',
+      });
+      createdSubFolders.push({
+        name: subFolderRes.data.name,
+        id: subFolderRes.data.id
+      });
+    }
+
+    // שליחה חזרה ללקוח עם ID של תיקיית הפרויקט + רשימת תיקיות המשנה
+    res.status(200).json({
+      projectFolderId,
+      subFolders: createdSubFolders
+    });
+
   } catch (error) {
     console.error("Error creating folder:", error);
-    res.status(500).send('Error Creating folder');
+    res.status(500).send('Error creating folder');
   }
 });
+
 
 
 // Get file_path by stageId
