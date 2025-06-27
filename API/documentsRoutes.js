@@ -9,30 +9,39 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
     const { name, parentName } = req.body;
-    const parentId = await drive.files.list({
+
+    // שלב 1: מציאת ID של תיקיית האב
+    const listResponse = await drive.files.list({
       q: `name='${parentName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: 'files(id)',
       spaces: 'drive',
     });
-    const folder = response.data.files;
-    if (folder.length === 0) {
+
+    const folders = listResponse.data.files;
+    if (folders.length === 0) {
       console.log('Folder not found');
-      return null;
+      return res.status(404).json({ error: 'Parent folder not found' });
     }
-    const res = await drive.files.create({
+
+    const parentId = folders[0].id;
+
+    // שלב 2: יצירת תיקייה חדשה בתוך תיקיית האב
+    const createResponse = await drive.files.create({
       resource: {
         name: name,
         mimeType: 'application/vnd.google-apps.folder',
-        parents: parentId ? [parentId] : [],
+        parents: [parentId],
       },
       fields: 'id',
     });
-    res.status(200).json('Folder created');
+
+    res.status(200).json({ folderId: createResponse.data.id });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating folder:", error);
     res.status(500).send('Error Creating folder');
   }
-})
+});
+
 
 // Get file_path by stageId
 router.get('/:stageId', authenticateToken, async (req, res) => {
