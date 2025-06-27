@@ -133,7 +133,7 @@ router.put('/:projectId',
             let statusArray;
             if (req.params.projectStatus === 'open') {
                 statusArray = ['on hold', 'live project'];
-            } else if (req.params.projectStatus === 'closed') {
+            } else if (req.params.projectStatus === 'close') {
                 statusArray = ['closed'];
             } else {
                 return res.status(400).json({ error: 'Invalid status parameter' });
@@ -212,7 +212,7 @@ router.post('/:projectStatus', authenticateToken, async (req, res) => {
         let statusArray;
         if (req.params.projectStatus === 'open') {
             statusArray = ['on hold', 'live project'];
-        } else if (req.params.projectStatus === 'closed') {
+        } else if (req.params.projectStatus === 'close') {
             statusArray = ['closed'];
         } else {
             return res.status(400).json({ error: 'Invalid status parameter' });

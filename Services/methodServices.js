@@ -24,7 +24,7 @@ function validateProjectUpdate(project, updateData) {
     const newStatus = updateData.status;
 
     if (oldStatus === 'closed' && newStatus !== 'closed') {
-        return { valid: false, message: 'Cannot reopen a closed project.' };
+        return { valid: false, message: 'Cannot reopen a close project.' };
     }
     if (oldStatus === 'on hold' && newStatus !== 'live project' && newStatus !== 'on hold') {
         return { valid: false, message: 'Project on hold can only be changed to live project or remain on hold.' };
