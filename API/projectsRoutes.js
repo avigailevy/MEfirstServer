@@ -246,7 +246,7 @@ router.post('/:projectStatus', async (req, res) => {
             owner_user_id
         };
         const created = await genericServices.createRecord('projects', newProject);
-        res.status(201).json(created);
+        res.status(201).json({created: created, project_id : project_id});
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
