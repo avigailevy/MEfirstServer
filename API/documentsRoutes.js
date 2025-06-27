@@ -4,6 +4,8 @@ const genericServices = require('../Services/genericServices');
 const googleDocsService = require('../services/googleServices/googleDocsService');
 const { drive } = require('../Services/googleServices/googleDrive');
 const { authenticateToken } = require('./middlewares/authMiddleware');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
 
 //create a new folder for a new project
 router.post('/newFolder', authenticateToken, async (req, res) => {
