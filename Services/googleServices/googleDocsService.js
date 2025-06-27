@@ -64,10 +64,34 @@ async function createProjectStructure(projectName, originalDocsMap) {
   return projectFolderId;
 }
 
+// פונקציה שמוצאת או יוצרת תיקיה לפי שם ותיקיית אב
+async function findOrCreateFolder(drive, name, parentId = null) {
+  const q = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false` +
+    (parentId ? ` and '${parentId}' in parents` : '');
+  const res = await drive.files.list({
+    q,
+    fields: 'files(id, name)',
+  });
+
+  if (res.data.files.length > 0) {
+    return res.data.files[0].id;
+  }
+   const folder = await drive.files.create({
+    requestBody: {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: parentId ? [parentId] : [],
+    },
+    fields: 'id',
+  });
+
+  return folder.data.id;
+}
 
 module.exports = {
   createGoogleDoc,
   deleteGoogleDoc,
   createFolder,
-
+  createProjectStructure,
+  findOrCreateFolder
 };

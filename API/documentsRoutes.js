@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const { createGoogleDoc, deleteGoogleDoc } = require('../services/googleServices/googleDocsService');
+const googleDocsService = require('../services/googleServices/googleDocsService');
 const { drive } = require('../Services/googleServices/googleDrive');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 
@@ -72,6 +72,71 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
+  try {
+    const { projectId, docType } = req.params; // שליפת מזהי הפרויקט וסוג המסמך מהנתיב
+    const filePath = req.file.path; // הנתיב הזמני של הקובץ שהועלה לשרת
+    const originalName = path.parse(req.file.originalname).name; // שם הקובץ המקורי בלי סיומת
+    const fileExt = path.extname(req.file.originalname); // הסיומת של הקובץ (.docx למשל)
+
+    // יצירת תיקיות לפי ההיררכיה: Projects → projectId → docType
+    const projectsFolderId = await findOrCreateFolder(drive, 'Projects');
+    const projectFolderId = await findOrCreateFolder(drive, projectId, projectsFolderId);
+    const docTypeFolderId = await findOrCreateFolder(drive, docType, projectFolderId);
+
+    // שלב 1: קבלת כל הקבצים בתיקיית docType
+    const existingFilesRes = await drive.files.list({
+      q: `'${docTypeFolderId}' in parents and trashed = false`,
+      fields: 'files(id, name)',
+    });
+
+    // שלב 2: סינון הקבצים לפי שם דומה עם תבנית גרסה (_vX)
+    const regex = new RegExp(`^${originalName}(?:_v(\\d+))?$`);
+    const matchingVersions = existingFilesRes.data.files
+      .map(f => {
+        const match = f.name.match(regex); // בדיקת התאמה לתבנית שם + גרסה
+        return match ? parseInt(match[1] || '1') : null; // אם יש גרסה - ניקח אותה, אחרת 1
+      })
+      .filter(v => v !== null); // ננקה תוצאות ריקות
+
+    // שלב 3: קביעת הגרסה החדשה
+    const newVersion = matchingVersions.length > 0
+      ? Math.max(...matchingVersions) + 1 // אם קיימות גרסאות, נוסיף 1 לגרסה הגבוהה ביותר
+      : 1; // אחרת זו גרסה ראשונה
+
+    const newName = `${originalName}_v${newVersion}`; // שם הקובץ החדש עם גרסה
+
+    // שלב 4: העלאת הקובץ ל-Google Drive עם המרה למסמך Google Docs
+    const uploadRes = await drive.files.create({
+      requestBody: {
+        name: newName, // שם הקובץ החדש עם גרסה
+        mimeType: 'application/vnd.google-apps.document', // המרה למסמך Google Docs
+        parents: [docTypeFolderId], // התיקיה הסופית שאליה יועלה
+      },
+      media: {
+        mimeType: req.file.mimetype, // סוג הקובץ
+        body: fs.createReadStream(filePath), // קריאת הקובץ מהשרת
+      },
+      fields: 'id, webViewLink', // אילו שדות להחזיר בתגובה
+    });
+
+    fs.unlinkSync(filePath); // מחיקת הקובץ מהשרת המקומי אחרי ההעלאה
+
+    // שליחת תגובה ללקוח עם פרטי הקובץ
+    res.json({
+      success: true,
+      version: newVersion,
+      name: newName,
+      fileId: uploadRes.data.id,
+      link: uploadRes.data.webViewLink,
+    });
+
+  } catch (error) {
+    console.error('שגיאה בהעלאה:', error.message);
+    // במקרה של שגיאה נשלח תגובה מתאימה
+    res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
+  }
+});
 
 
 // Get file_path by stageId
@@ -99,7 +164,7 @@ router.post('/:stageId/create', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const { docId, url } = await createGoogleDoc(title);
+    const { docId, url } = await googleDocsService.createGoogleDoc(title);
 
     await drive.permissions.create({
       fileId: docId,
@@ -133,7 +198,7 @@ router.post('/:stageId/create', authenticateToken, async (req, res) => {
 router.delete('/:docId', authenticateToken, async (req, res) => {
   try {
     const docId = req.params.docId;
-    await deleteGoogleDoc(docId);
+    await googleDocsService.deleteGoogleDoc(docId);
     await genericServices.deleteRecord('documents', 'document_id', docId);
     res.sendStatus(200).json({ success: true });
   } catch (error) {
