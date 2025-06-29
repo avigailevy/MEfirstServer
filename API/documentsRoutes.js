@@ -153,6 +153,7 @@ router.post('/copy', authenticateToken, async (req, res) => {
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
     const { name, parentName } = req.body;
+    const { username } = req.user; // ← זה user מה-token, לא req.params
 
     // 1. חיפוש תיקיית האב
     const listResponse = await drive.files.list({
@@ -167,7 +168,7 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
     }
 
     const parentId = listResponse.data.files[0].id;
-    console.log(`Parent folder found: ${parentName} with ID ${parentId}`);
+    console.log(`✅ Parent folder found: ${parentName} → ID: ${parentId}`);
 
     // 2. יצירת תיקיית פרויקט ראשית
     const projectFolder = await drive.files.create({
@@ -180,20 +181,18 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
     });
 
     const projectFolderId = projectFolder.data.id;
-    console.log(`Project folder created: ${name} with ID ${projectFolderId}`);
+    console.log(`📁 Project folder created: ${name} → ID: ${projectFolderId}`);
 
-    // 3. קבלת תיקיית המסמכים המקוריים וכל המסמכים בתוכה
+    // 3. קבלת תיקיית התבניות והמסמכים בתוכה
     const templateFolderId = await getOriginalDocumentsFolderId();
-    console.log(`Original Documents folder ID: ${templateFolderId}`);
-
     const templateDocs = await getOriginalDocs(templateFolderId);
-    console.log(`Found ${templateDocs.length} original documents:`, templateDocs.map(d => d.name));
+    console.log(`📄 Found ${templateDocs.length} original documents`);
 
     const subFolders = ["CIF", "9CheckList", "RFQ", "LOI", "FCO", "SPA", "ICPO", "Summaries", "Quote"];
     const createdFolders = [];
 
     for (const folderName of subFolders) {
-      // יצירת תיקיית משנה בפרויקט
+      // 4. יצירת תיקיית משנה
       const subFolder = await drive.files.create({
         resource: {
           name: folderName,
@@ -204,53 +203,89 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
       });
 
       const subFolderId = subFolder.data.id;
-      console.log(`Subfolder created: ${folderName} with ID ${subFolderId}`);
+      console.log(`📂 Subfolder created: ${folderName} → ID: ${subFolderId}`);
 
-      // חיפוש המסמך המתאים לתיקייה לפי שם
+      // 5. חיפוש מסמך תואם לתבנית
       const normalize = str =>
         str.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').toLowerCase();
 
       const matchingDoc = templateDocs.find(doc => normalize(doc.name) === normalize(folderName));
 
-
       if (matchingDoc) {
         try {
-          console.log(`Found matching doc '${matchingDoc.name}' for folder '${folderName}', copying...`);
+          console.log(`📎 Copying doc '${matchingDoc.name}' to '${folderName}'...`);
           const copy = await drive.files.copy({
             fileId: matchingDoc.id,
             requestBody: {
               name: `${matchingDoc.name}_v1`,
               parents: [subFolderId],
             },
+            fields: 'id, webViewLink',
           });
-          console.log(`Copied document ID: ${copy.data.id}`);
+
+          const copyId = copy.data.id;
+
+          // 6. יצירת הרשאה לצפייה בקובץ
+          await drive.permissions.create({
+            fileId: copyId,
+            requestBody: {
+              role: 'reader',
+              type: 'anyone',
+            },
+          });
+
+          console.log("📥 Creating record in DB for doc:", {
+            project_id: name,
+            doc_type: folderName,
+            file_path: copy.data.webViewLink,
+            uploaded_by: username,
+          });
+
+          // 7. שמירה למסד הנתונים
+          try {
+            await genericServices.createRecord('documents', {
+              project_id: name,
+              stage_id: null,
+              doc_type: folderName,
+              doc_version: 1,
+              file_path: copy.data.webViewLink,
+              uploaded_by: username,
+            });
+            console.log("✅ Record saved to DB");
+          } catch (err) {
+            console.error("❌ Failed to create document record:", err.message, err);
+          }
+
 
           createdFolders.push({
             folder: folderName,
             folderId: subFolderId,
-            originalDocId: copy.data.id,
-            originalDocName: `${matchingDoc.name}_v1`,
+            originalDocId: copyId,
+            webViewLink: copy.data.webViewLink,
           });
+
+          console.log(`✅ Copied + saved '${matchingDoc.name}' → ${copy.data.webViewLink}`);
+
         } catch (copyError) {
-          console.error(`Error copying document to folder '${folderName}':`, copyError);
+          console.error(`❌ Error copying document:`, copyError);
           createdFolders.push({
             folder: folderName,
             folderId: subFolderId,
             originalDocId: null,
-            error: `Copy error: ${copyError.message}`,
+            error: copyError.message,
           });
         }
       } else {
-        console.warn(`No matching document found for folder '${folderName}'`);
+        console.warn(`⚠️ No matching doc found for '${folderName}'`);
         createdFolders.push({
           folder: folderName,
           folderId: subFolderId,
-          originalDocId: null,
           note: 'No matching doc found',
         });
       }
     }
 
+    // 8. סיום
     res.status(201).json({
       success: true,
       projectFolderId,
@@ -258,10 +293,14 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error("General error in newFolder route:", error);
-    res.status(500).json({ error: 'Failed to create full project structure', details: error.message });
+    console.error("🔥 General error in /newFolder:", error);
+    res.status(500).json({
+      error: 'Failed to create full project structure',
+      details: error.message,
+    });
   }
 });
+
 
 router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
   try {
@@ -343,7 +382,7 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
 router.get('/getFilePath/:projectId/:docType', authenticateToken, async (req, res) => {
   try {
     const { projectId, docType } = req.params;
-    const results = await genericServices.getRecordsByMultipleConditions('documents', ['file_path'], { project_id: projectId, document_type: docType });
+    const results = await genericServices.getRecordsByMultipleConditions('documents', ['file_path'], { project_id: projectId, doc_type: docType });
     if (!results || results.length === 0) {
       return res.status(404).json({ error: 'Document not found' });
     }

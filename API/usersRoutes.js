@@ -71,4 +71,18 @@ router.get('/userName/:user_id', authenticateToken, async (req, res) => {
     }
 });
 
+//get a user name by the user_id
+router.get('/userId/:userName', authenticateToken, async (req, res) => {
+    try {
+        const { userName } = req.params;
+        const user = await genericServices.getRecordByColumn('users', 'username', userName);
+        if (!user) {
+            return res.status(404).json({ error: 'user not found.' });
+        }
+        res.json({ username: user.user_id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
