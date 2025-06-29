@@ -3,6 +3,8 @@ const genericServices = require('../Services/genericServices');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
+
+
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', authenticateToken, async (req, res) => {
   try {
