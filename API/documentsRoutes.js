@@ -6,6 +6,57 @@ const { drive } = require('../Services/googleServices/googleDrive');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
+
+// פונקציה למציאת הגרסה האחרונה בתיקיה
+async function getNextVersion(drive, folderId, docType) {
+  const res = await drive.files.list({
+    q: `'${folderId}' in parents and trashed = false and name contains '${docType}_v'`,
+    fields: 'files(id, name)',
+  });
+
+  const regex = new RegExp(`^${docType}_v(\\d+)$`);
+  let maxVersion = 0;
+  let latestFileId = null;
+
+  for (const file of res.data.files) {
+    const match = file.name.match(regex);
+    if (match) {
+      const version = parseInt(match[1]);
+      if (version > maxVersion) {
+        maxVersion = version;
+        latestFileId = file.id;
+      }
+    }
+  }
+
+  return {
+    nextVersion: maxVersion + 1,
+    latestFileId,
+  };
+}
+
+//פונקציה למציאת ID של תיקיה על פי שם ותיקיית אב
+async function findFolderIdByName(folderName, parentFolderId = null) {
+  const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
+
+  let q = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  if (parentFolderId) {
+    q += ` and '${parentFolderId}' in parents`;
+  }
+
+  const res = await drive.files.list({
+    q,
+    fields: 'files(id, name)',
+    spaces: 'drive',
+  });
+
+  if (res.data.files.length === 0) {
+    return null; // לא נמצאה תיקיה כזו
+  }
+
+  return res.data.files[0].id; // מחזיר את ה-id של התיקיה הראשונה שנמצאה
+}
+//create a new folder for a new project
 async function getOriginalDocumentsFolderId() {
   try {
     const res = await drive.files.list({
@@ -32,6 +83,63 @@ async function getOriginalDocs(folderId) {
     throw error;
   }
 }
+//שכפול של קובץ אל תיקיה מסויימת
+router.post('/drive/copy', authenticateToken, async (req, res) => {
+  try {
+    const { projectName, docType } = req.body;
+    if (!projectName || !docType) {
+      return res.status(400).json({ error: 'Missing parameters' });
+    }
+    const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
+
+    // שלב 1: Projects → projectName → docType
+    const projectsFolderId = await findFolderIdByName('Projects');
+    if (!projectsFolderId) throw new Error('תיקיית Projects לא נמצאה');
+
+    const projectFolderId = await findFolderIdByName(projectName, projectsFolderId);
+    if (!projectFolderId) throw new Error(`תיקיית הפרויקט "${projectName}" לא נמצאה`);
+
+    const targetFolderId = await findFolderIdByName(docType, projectFolderId);
+    if (!targetFolderId) throw new Error(`תיקיית "${docType}" לא נמצאה בפרויקט "${projectName}"`);
+
+    // שלב 2: חיפוש הקובץ האחרון בתיקיה לפי סוג המסמך
+    const { nextVersion, latestFileId } = await getNextVersion(drive, targetFolderId, docType);
+
+    if (!latestFileId) {
+      throw new Error(`לא נמצא קובץ בשם "${docType}_vX" בתיקיית "${docType}" של הפרויקט "${projectName}"`);
+    }
+
+    const fileId = latestFileId;
+    const newName = `${docType}_v${nextVersion}`;
+
+
+
+    // שלב 4: שכפול
+    const copyRes = await drive.files.copy({
+      fileId,
+      requestBody: {
+        name: newName,
+        parents: [targetFolderId],
+      },
+      fields: 'id, name, webViewLink',
+    });
+
+    res.json({
+      success: true,
+      fileId: copyRes.data.id,
+      name: copyRes.data.name,
+      version: nextVersion,
+      link: copyRes.data.webViewLink,
+    });
+
+  } catch (err) {
+    console.error('שגיאה בשכפול:', err.message);
+    res.status(500).json({ error: 'Copy failed', message: err.message });
+  }
+});
+
+
+
 
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
@@ -93,9 +201,9 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
 
       // חיפוש המסמך המתאים לתיקייה לפי שם
       const normalize = str =>
-  str.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').toLowerCase();
+        str.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').toLowerCase();
 
-const matchingDoc = templateDocs.find(doc => normalize(doc.name) === normalize(folderName));
+      const matchingDoc = templateDocs.find(doc => normalize(doc.name) === normalize(folderName));
 
 
       if (matchingDoc) {
@@ -284,5 +392,7 @@ router.delete('/:docId', authenticateToken, async (req, res) => {
     res.status(500).send('Error deleting Google Doc');
   }
 });
+
+
 
 module.exports = router;
