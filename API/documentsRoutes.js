@@ -308,6 +308,16 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
 
     fs.unlinkSync(filePath); // מחיקת הקובץ מהשרת המקומי אחרי ההעלאה
 
+    await genericServices.createRecord('documents', {
+  project_id: projectId,
+  stage_id: null, // אם אין stageId, ניתן להשאיר null
+  doc_type: docType,
+  doc_version: `v${newVersion}`,
+  file_path: uploadRes.data.webViewLink,
+  uploaded_by: userId, // מתוך ה־JWT
+  
+});
+
     // שליחת תגובה ללקוח עם פרטי הקובץ
     res.json({
       success: true,

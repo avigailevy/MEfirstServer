@@ -3,21 +3,21 @@ const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
-//get a specific stage by stage_id
-router.get('stages/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params;
-  try {
-    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
-    if (!stage) return res.status(404).json({ error: 'Stage not found' });
-    res.json(stage);
-  } catch (err) {
-    console.error('Error fetching stage:', err);
-    res.status(500).json({ error: 'Failed to fetch stage' });
-  }
+// קבלת כל השלבים של פרויקט מסוים
+router.get('/:project_id', authenticateToken, async (req, res) => {
+    try {
+        const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", req.params.project_id);
+        console.log(req.params.project_id);
+        
+        res.json(stages);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
+    }
 });
 
+
 router.put('/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params;
+   const { stage_id } = req.params.stage_id;
   const { extend_stage_1 } = req.body;
 
   if (typeof extend_stage_1 !== 'string') {
@@ -45,8 +45,8 @@ router.put('/:stage_id', authenticateToken, async (req, res) => {
 });
 
 router.get('/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params;
-  try {
+  const { stage_id } = req.params.stage_id;
+    try {
     const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
     if (!stage) {
       return res.status(404).json({ error: 'Stage not found' });
@@ -57,14 +57,18 @@ router.get('/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stage' });
   }
 });
-// קבלת כל השלבים של פרויקט מסוים
-router.get('/:project_id', authenticateToken, async (req, res) => {
-    try {
-        const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", req.params);
-        res.json(stages);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
-    }
+
+//get a specific stage by stage_id
+router.get('stages/:stage_id', authenticateToken, async (req, res) => {
+  const { stage_id } = req.params.stage_id;
+  try {
+    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
+    if (!stage) return res.status(404).json({ error: 'Stage not found' });
+    res.json(stage);
+  } catch (err) {
+    console.error('Error fetching stage:', err);
+    res.status(500).json({ error: 'Failed to fetch stage' });
+  }
 });
 
 
@@ -72,8 +76,8 @@ router.get('/:project_id', authenticateToken, async (req, res) => {
 // עדכון שלב ספציפי לפי מזהה שלב
 router.put('/:stage_id/completed', authenticateToken, async (req, res) => {
     try {
-        const { stage_id } = req.params;
-        const { completed } = req.body;
+  const { stage_id } = req.params.stage_id;
+          const { completed } = req.body;
         const completion_date = completed ? new Date() : null;
 
         const result = await genericServices.updateRecord(
@@ -91,8 +95,8 @@ router.put('/:stage_id/completed', authenticateToken, async (req, res) => {
 // קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
 router.get('/:project_id/next', authenticateToken, async (req, res) => {
     try {
-        const { project_id } = req.params;
-        // Get all stages for the project, ordered by stage_id
+  const { stage_id } = req.params.stage_id;
+          // Get all stages for the project, ordered by stage_id
         const stages = await genericServices.getAllRecordsByColumn('stages', 'project_id', { project_id });
         // Sort by stage_id (assuming it's numeric)
         stages.sort((a, b) => a.stage_id - b.stage_id);
