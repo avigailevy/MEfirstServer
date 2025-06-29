@@ -3,10 +3,14 @@ const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
+
+
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', authenticateToken, async (req, res) => {
+     const { stage_id } = req.params.stage_id;
+
     try {
-        const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", req.params.project_id);
+        const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", ..);
         console.log(req.params.project_id);
         
         res.json(stages);
@@ -59,8 +63,8 @@ router.get('/:stage_id', authenticateToken, async (req, res) => {
 });
 
 //get a specific stage by stage_id
-router.get('stages/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params.stage_id;
+router.get('/:stage_id', authenticateToken, async (req, res) => {
+  const { stage_id } = req.params;
   try {
     const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
     if (!stage) return res.status(404).json({ error: 'Stage not found' });
