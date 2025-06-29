@@ -84,35 +84,33 @@ async function getOriginalDocs(folderId) {
   }
 }
 //שכפול של קובץ אל תיקיה מסויימת
-router.post('/drive/copy', authenticateToken, async (req, res) => {
+router.post('/copy', authenticateToken, async (req, res) => {
   try {
-    const { projectName, docType } = req.body;
-    if (!projectName || !docType) {
+    const { projectId, docType, stageId, userId } = req.body;
+    if (!projectId || !docType || !stageId || !userId) {
       return res.status(400).json({ error: 'Missing parameters' });
     }
     const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
 
-    // שלב 1: Projects → projectName → docType
+    // שלב 1: Projects → projectId → docType
     const projectsFolderId = await findFolderIdByName('Projects');
     if (!projectsFolderId) throw new Error('תיקיית Projects לא נמצאה');
 
-    const projectFolderId = await findFolderIdByName(projectName, projectsFolderId);
+    const projectFolderId = await findFolderIdByName(projectId, projectsFolderId);
     if (!projectFolderId) throw new Error(`תיקיית הפרויקט "${projectName}" לא נמצאה`);
 
     const targetFolderId = await findFolderIdByName(docType, projectFolderId);
-    if (!targetFolderId) throw new Error(`תיקיית "${docType}" לא נמצאה בפרויקט "${projectName}"`);
+    if (!targetFolderId) throw new Error(`תיקיית "${docType}" לא נמצאה בפרויקט "${projectId}"`);
 
     // שלב 2: חיפוש הקובץ האחרון בתיקיה לפי סוג המסמך
     const { nextVersion, latestFileId } = await getNextVersion(drive, targetFolderId, docType);
 
     if (!latestFileId) {
-      throw new Error(`לא נמצא קובץ בשם "${docType}_vX" בתיקיית "${docType}" של הפרויקט "${projectName}"`);
+      throw new Error(`לא נמצא קובץ בשם "${docType}_vX" בתיקיית "${docType}" של הפרויקט "${projectId}"`);
     }
 
     const fileId = latestFileId;
     const newName = `${docType}_v${nextVersion}`;
-
-
 
     // שלב 4: שכפול
     const copyRes = await drive.files.copy({
@@ -124,7 +122,21 @@ router.post('/drive/copy', authenticateToken, async (req, res) => {
       fields: 'id, name, webViewLink',
     });
 
-    res.json({
+    const newDoc = {
+      project_id: projectId,
+      stage_id: stageId,
+      doc_type: 'RFQ',
+      doc_version: `v${nextVersion}`,
+      file_path: `https://docs.google.com/document/d/${copyRes.data.id}/edit`,
+      uploaded_by: userId
+    };
+
+    const saveInDB = genericServices.createRecord('documents', newDoc);
+    if (saveInDB) {
+      console.log('New document created in DB');
+    }
+
+    res.status(200).json({
       success: true,
       fileId: copyRes.data.id,
       name: copyRes.data.name,
@@ -137,9 +149,6 @@ router.post('/drive/copy', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Copy failed', message: err.message });
   }
 });
-
-
-
 
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
@@ -256,8 +265,6 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
   }
 });
 
-
-
 router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     const { projectId, docType } = req.params; // שליפת מזהי הפרויקט וסוג המסמך מהנתיב
@@ -333,7 +340,6 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
     res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
   }
 });
-
 
 // Get file_path by stageId
 router.get('/:stageId', authenticateToken, async (req, res) => {
