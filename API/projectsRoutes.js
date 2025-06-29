@@ -108,6 +108,7 @@ router.get('/single/:projectId', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const project = await genericServices.getRecordByColumns('projects', {
       'project_id': projectId
+      
     });
 
     if (!project) {
