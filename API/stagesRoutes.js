@@ -1,11 +1,10 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
-const router = express.Router();
 const {authenticateToken} = require('./middlewares/authMiddleware');
-
+const router = express.Router({ mergeParams: true });
 
 //get a specific stage by stage_id
-router.get('/:stage_id', authenticateToken, async (req, res) => {
+router.get('stages/:stage_id', authenticateToken, async (req, res) => {
   const { stage_id } = req.params;
   try {
     const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);

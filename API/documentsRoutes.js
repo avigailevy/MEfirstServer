@@ -6,73 +6,149 @@ const { drive } = require('../Services/googleServices/googleDrive');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
+async function getOriginalDocumentsFolderId() {
+  try {
+    const res = await drive.files.list({
+      q: `name='Original Documents' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields: 'files(id)',
+    });
+    if (!res.data.files.length) throw new Error("Original Documents folder not found");
+    return res.data.files[0].id;
+  } catch (error) {
+    console.error("Error getting Original Documents folder ID:", error);
+    throw error;
+  }
+}
 
-//create a new folder for a new project
+async function getOriginalDocs(folderId) {
+  try {
+    const res = await drive.files.list({
+      q: `'${folderId}' in parents and trashed=false and mimeType != 'application/vnd.google-apps.folder'`,
+      fields: 'files(id, name)',
+    });
+    return res.data.files;
+  } catch (error) {
+    console.error("Error getting original docs from folder:", error);
+    throw error;
+  }
+}
+
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
     const { name, parentName } = req.body;
 
-    // שלב 1: מציאת ID של תיקיית האב
+    // 1. חיפוש תיקיית האב
     const listResponse = await drive.files.list({
       q: `name='${parentName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: 'files(id)',
       spaces: 'drive',
     });
 
-    const folders = listResponse.data.files;
-    if (folders.length === 0) {
-      console.log('Folder not found');
+    if (listResponse.data.files.length === 0) {
+      console.error("Parent folder not found:", parentName);
       return res.status(404).json({ error: 'Parent folder not found' });
     }
 
-    const parentId = folders[0].id;
+    const parentId = listResponse.data.files[0].id;
+    console.log(`Parent folder found: ${parentName} with ID ${parentId}`);
 
-    // שלב 2: יצירת תיקיית הפרויקט בתוך תיקיית האב
-    const createResponse = await drive.files.create({
+    // 2. יצירת תיקיית פרויקט ראשית
+    const projectFolder = await drive.files.create({
       resource: {
-        name: name,
+        name,
         mimeType: 'application/vnd.google-apps.folder',
         parents: [parentId],
       },
       fields: 'id',
     });
 
-    const projectFolderId = createResponse.data.id;
+    const projectFolderId = projectFolder.data.id;
+    console.log(`Project folder created: ${name} with ID ${projectFolderId}`);
 
-    // שלב 3: יצירת 9 תיקיות קבועות בתוך תיקיית הפרויקט
-    const subFolders = [
-      "CIF", "9CheckList", "RFQ", "LOI",
-      "FCO", "SPA", "ICPO", "Summaries", "Quote"
-    ];
+    // 3. קבלת תיקיית המסמכים המקוריים וכל המסמכים בתוכה
+    const templateFolderId = await getOriginalDocumentsFolderId();
+    console.log(`Original Documents folder ID: ${templateFolderId}`);
 
-    const createdSubFolders = [];
+    const templateDocs = await getOriginalDocs(templateFolderId);
+    console.log(`Found ${templateDocs.length} original documents:`, templateDocs.map(d => d.name));
 
-    for (const subFolder of subFolders) {
-      const subFolderRes = await drive.files.create({
+    const subFolders = ["CIF", "9CheckList", "RFQ", "LOI", "FCO", "SPA", "ICPO", "Summaries", "Quote"];
+    const createdFolders = [];
+
+    const normalize = str => str.replace(/\s+/g, '').toLowerCase();
+
+    for (const folderName of subFolders) {
+      // יצירת תיקיית משנה בפרויקט
+      const subFolder = await drive.files.create({
         resource: {
-          name: subFolder,
+          name: folderName,
           mimeType: 'application/vnd.google-apps.folder',
           parents: [projectFolderId],
         },
-        fields: 'id, name',
+        fields: 'id',
       });
-      createdSubFolders.push({
-        name: subFolderRes.data.name,
-        id: subFolderRes.data.id
-      });
+
+      const subFolderId = subFolder.data.id;
+      console.log(`Subfolder created: ${folderName} with ID ${subFolderId}`);
+
+      // חיפוש המסמך המתאים לתיקייה לפי שם
+      const normalize = str =>
+  str.replace(/\.[^/.]+$/, '').replace(/\s+/g, '').toLowerCase();
+
+const matchingDoc = templateDocs.find(doc => normalize(doc.name) === normalize(folderName));
+
+
+      if (matchingDoc) {
+        try {
+          console.log(`Found matching doc '${matchingDoc.name}' for folder '${folderName}', copying...`);
+          const copy = await drive.files.copy({
+            fileId: matchingDoc.id,
+            requestBody: {
+              name: `${matchingDoc.name}_v1`,
+              parents: [subFolderId],
+            },
+          });
+          console.log(`Copied document ID: ${copy.data.id}`);
+
+          createdFolders.push({
+            folder: folderName,
+            folderId: subFolderId,
+            originalDocId: copy.data.id,
+            originalDocName: `${matchingDoc.name}_v1`,
+          });
+        } catch (copyError) {
+          console.error(`Error copying document to folder '${folderName}':`, copyError);
+          createdFolders.push({
+            folder: folderName,
+            folderId: subFolderId,
+            originalDocId: null,
+            error: `Copy error: ${copyError.message}`,
+          });
+        }
+      } else {
+        console.warn(`No matching document found for folder '${folderName}'`);
+        createdFolders.push({
+          folder: folderName,
+          folderId: subFolderId,
+          originalDocId: null,
+          note: 'No matching doc found',
+        });
+      }
     }
 
-    // שליחה חזרה ללקוח עם ID של תיקיית הפרויקט + רשימת תיקיות המשנה
-    res.status(200).json({
+    res.status(201).json({
+      success: true,
       projectFolderId,
-      subFolders: createdSubFolders
+      createdFolders,
     });
 
   } catch (error) {
-    console.error("Error creating folder:", error);
-    res.status(500).send('Error creating folder');
+    console.error("General error in newFolder route:", error);
+    res.status(500).json({ error: 'Failed to create full project structure', details: error.message });
   }
 });
+
+
 
 router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
   try {

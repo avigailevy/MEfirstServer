@@ -4,6 +4,8 @@ const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
 const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
 
+
+
 //ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
 router.get('/:agentName', authenticateToken, async (req, res) => {
   try {
@@ -244,6 +246,31 @@ router.post('/:projectStatus', authenticateToken, async (req, res) => {
       owner_user_id
     };
     const created = await genericServices.createRecord('projects', newProject);
+
+    // ✅ נוספה כאן יצירת השלבים אוטומטית
+    const defaultStages = [
+      '9CheckList',
+      'RFQ',
+      'pickProducts',
+      'Quote',
+      'LOI',
+      'FCO',
+      'SPA',
+      'ICPO',
+      'CIF'
+    ];
+
+    const stagePromises = defaultStages.map((stageName, index) => {
+      return genericServices.createRecord('stages', {
+        project_id: project_id,
+        stage_number: index + 1,
+        stage_name: stageName,
+        completed: false
+      });
+    });
+
+    await Promise.all(stagePromises);
+    // ✅ סיום הוספת שלבים
     res.status(201).json({ created: created, project_id: project_id });
   } catch (err) {
     res.status(500).json({ error: err.message });
