@@ -64,6 +64,7 @@ async function getRecordsByColumns(tableName, columns, whereColumn, whereValue) 
   const [rows] = await db.execute(sql, [whereValue]);
   return rows;
 }
+
 async function getRecordsWhereInWithFilter(table, inColumn, inValues, filterColumn, filterValue) {
   const placeholders = inValues.map(() => '?').join(',');
   const sql = `SELECT * FROM \`${table}\` WHERE \`${inColumn}\` IN (${placeholders}) AND \`${filterColumn}\` = ?`;

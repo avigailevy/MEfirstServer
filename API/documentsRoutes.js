@@ -192,8 +192,6 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
     const subFolders = ["CIF", "9CheckList", "RFQ", "LOI", "FCO", "SPA", "ICPO", "Summaries", "Quote"];
     const createdFolders = [];
 
-    const normalize = str => str.replace(/\s+/g, '').toLowerCase();
-
     for (const folderName of subFolders) {
       // יצירת תיקיית משנה בפרויקט
       const subFolder = await drive.files.create({
@@ -316,14 +314,14 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
     fs.unlinkSync(filePath); // מחיקת הקובץ מהשרת המקומי אחרי ההעלאה
 
     await genericServices.createRecord('documents', {
-  project_id: projectId,
-  stage_id: null, // אם אין stageId, ניתן להשאיר null
-  doc_type: docType,
-  doc_version: `v${newVersion}`,
-  file_path: uploadRes.data.webViewLink,
-  uploaded_by: userId, // מתוך ה־JWT
-  
-});
+      project_id: projectId,
+      stage_id: null, // אם אין stageId, ניתן להשאיר null
+      doc_type: docType,
+      doc_version: `v${newVersion}`,
+      file_path: uploadRes.data.webViewLink,
+      uploaded_by: userId, // מתוך ה־JWT
+
+    });
 
     // שליחת תגובה ללקוח עם פרטי הקובץ
     res.json({
@@ -342,10 +340,10 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
 });
 
 // Get file_path by stageId
-router.get('/:stageId', authenticateToken, async (req, res) => {
+router.get('/getFilePath/:projectId/:docType', authenticateToken, async (req, res) => {
   try {
-    const { stageId } = req.params;
-    const results = await genericServices.getRecordsByColumns('documents', ['file_path'], 'stage_id', stageId);
+    const { projectId, docType } = req.params;
+    const results = await genericServices.getRecordsByMultipleConditions('documents', ['file_path'], { project_id: projectId, document_type: docType });
     if (!results || results.length === 0) {
       return res.status(404).json({ error: 'Document not found' });
     }
