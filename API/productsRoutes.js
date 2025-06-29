@@ -57,8 +57,6 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 
-
-
 // קבלת מוצר מסוים לפי מזהה עבור משתמש מסוים
 router.get('/:productId', authenticateToken, async (req, res) => {    
     try {

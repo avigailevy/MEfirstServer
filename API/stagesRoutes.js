@@ -1,27 +1,56 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
-const {authenticateToken} = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
 
 
 // קבלת כל השלבים של פרויקט מסוים
 router.get('/:project_id', authenticateToken, async (req, res) => {
-     const { stage_id } = req.params.stage_id;
-
-    try {
-        const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", ..);
-        console.log(req.params.project_id);
-        
-        res.json(stages);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
-    }
+  try {
+    const { project_id } = req.params;
+    const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", project_id);
+    res.json(stages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
+  }
 });
 
+router.get('/display/:stage_id', authenticateToken, async (req, res) => {
+  const { username, stage_id } = req.params;
+  try {
+    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
+    if (!stage) {
+      return res.status(404).json({ error: 'Stage not found' });
+    }
+    res.json(stage);
+    console.log("stage_id:", stage_id);
+    console.log("username:", username);
+  } catch (error) {
+    console.error('Error fetching stage:', error);
+    res.status(500).json({ error: 'Failed to fetch stage' });
+  }
+});
+// קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
+router.get('/next/:project_id', authenticateToken, async (req, res) => {
+  try {
+    const { stage_id } = req.params.stage_id;
+    // Get all stages for the project, ordered by stage_id
+    const stages = await genericServices.getAllRecordsByColumn('stages', 'project_id', { project_id });
+    // Sort by stage_id (assuming it's numeric)
+    stages.sort((a, b) => a.stage_id - b.stage_id);
+    // Find the last completed stage
+    const lastCompletedIndex = stages.map(s => s.completed).lastIndexOf(true);
+    // The next stage is the one after the last completed
+    const nextStage = stages[lastCompletedIndex + 1] || null;
+    res.json(nextStage);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch next stage' });
+  }
+});
 
 router.put('/:stage_id', authenticateToken, async (req, res) => {
-   const { stage_id } = req.params.stage_id;
+  const { stage_id } = req.params.stage_id;
   const { extend_stage_1 } = req.body;
 
   if (typeof extend_stage_1 !== 'string') {
@@ -47,73 +76,23 @@ router.put('/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to update stage' });
   }
 });
-
-router.get('/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params.stage_id;
-    try {
-    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
-    if (!stage) {
-      return res.status(404).json({ error: 'Stage not found' });
-    }
-    res.json(stage);
-  } catch (error) {
-    console.error('Error fetching stage:', error);
-    res.status(500).json({ error: 'Failed to fetch stage' });
-  }
-});
-
-//get a specific stage by stage_id
-router.get('/:stage_id', authenticateToken, async (req, res) => {
-  const { stage_id } = req.params;
-  try {
-    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
-    if (!stage) return res.status(404).json({ error: 'Stage not found' });
-    res.json(stage);
-  } catch (err) {
-    console.error('Error fetching stage:', err);
-    res.status(500).json({ error: 'Failed to fetch stage' });
-  }
-});
-
-
-
 // עדכון שלב ספציפי לפי מזהה שלב
-router.put('/:stage_id/completed', authenticateToken, async (req, res) => {
-    try {
-  const { stage_id } = req.params.stage_id;
-          const { completed } = req.body;
-        const completion_date = completed ? new Date() : null;
+router.put('/completed/:stage_id', authenticateToken, async (req, res) => {
+  try {
+    const { stage_id } = req.params.stage_id;
+    const { completed } = req.body;
+    const completion_date = completed ? new Date() : null;
 
-        const result = await genericServices.updateRecord(
-            'stages',
-            'stage_id',
-            stage_id,
-            { completed, completion_date }
-        );
+    const result = await genericServices.updateRecord(
+      'stages',
+      'stage_id',
+      stage_id,
+      { completed, completion_date }
+    );
 
-        res.json(result);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to update stage completion status' });
-    }
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update stage completion status' });
+  }
 });
-// קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
-router.get('/:project_id/next', authenticateToken, async (req, res) => {
-    try {
-  const { stage_id } = req.params.stage_id;
-          // Get all stages for the project, ordered by stage_id
-        const stages = await genericServices.getAllRecordsByColumn('stages', 'project_id', { project_id });
-        // Sort by stage_id (assuming it's numeric)
-        stages.sort((a, b) => a.stage_id - b.stage_id);
-        // Find the last completed stage
-        const lastCompletedIndex = stages.map(s => s.completed).lastIndexOf(true);
-        // The next stage is the one after the last completed
-        const nextStage = stages[lastCompletedIndex + 1] || null;
-        res.json(nextStage);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch next stage' });
-    }
-});
-
-
-
 module.exports = router;
