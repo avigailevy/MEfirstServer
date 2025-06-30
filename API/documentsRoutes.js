@@ -9,7 +9,7 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
 
-// פונקציה למציאת הגרסה האחרונה בתיקיה
+// Returns the next version number and latest file ID for a document type in a folder
 async function getNextVersion(drive, folderId, docType) {
   const res = await drive.files.list({
     q: `'${folderId}' in parents and trashed = false and name contains '${docType}_v'`,
@@ -37,9 +37,7 @@ async function getNextVersion(drive, folderId, docType) {
     latestFileId,
   };
 }
-
-
-//פונקציה למציאת ID של תיקיה על פי שם ותיקיית אב
+// Finds and returns the folder ID by its name and optional parent folder ID; returns null if not found
 async function findFolderIdByName(folderName, parentFolderId = null) {
   const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
 
@@ -60,7 +58,7 @@ async function findFolderIdByName(folderName, parentFolderId = null) {
 
   return res.data.files[0].id; // מחזיר את ה-id של התיקיה הראשונה שנמצאה
 }
-//create a new folder for a new project
+// Returns the folder ID of the "Original Documents" folder; throws error if not found
 async function getOriginalDocumentsFolderId() {
   try {
     const res = await drive.files.list({
@@ -74,7 +72,7 @@ async function getOriginalDocumentsFolderId() {
     throw error;
   }
 }
-
+// Returns all original document files (not folders) in a given folder ID
 async function getOriginalDocs(folderId) {
   try {
     const res = await drive.files.list({
@@ -87,7 +85,21 @@ async function getOriginalDocs(folderId) {
     throw error;
   }
 }
-//שכפול של קובץ אל תיקיה מסויימת
+// Returns the file_path (Google Doc link) for a document by projectId and docType
+router.get('/getFilePath/:projectId/:docType', authenticateToken, async (req, res) => {
+  try {
+    const { projectId, docType } = req.params;
+    const results = await genericServices.getRecordsByMultipleConditions('documents', ['file_path'], { project_id: projectId, doc_type: docType });
+    if (!results || results.length === 0) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+    res.json({ file_path: results[0].file_path });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving Google Doc');
+  }
+});
+// Copies the latest version of a document (by docType) in a project folder, creates a new version, saves it in DB, and returns info about the new copy
 router.post('/copy', authenticateToken, async (req, res) => {
   try {
     const { projectId, docType, stageId, userId } = req.body;
@@ -159,7 +171,7 @@ router.post('/copy', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Copy failed', message: err.message });
   }
 });
-
+// Creates a new project folder with subfolders and copies template documents into them, saving records in DB; returns info about created folders and docs
 router.post('/newFolder', authenticateToken, async (req, res) => {
   try {
     const { name, parentName } = req.body;
@@ -310,8 +322,7 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
     });
   }
 });
-
-
+// Uploads a file to Google Drive under the project/docType folder, creates a new version, saves it in DB, and returns info about the uploaded file
 router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
   try {
     const { projectId, docType } = req.params; // שליפת מזהי הפרויקט וסוג המסמך מהנתיב
@@ -387,23 +398,7 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
     res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
   }
 });
-
-// Get file_path by stageId
-router.get('/getFilePath/:projectId/:docType', authenticateToken, async (req, res) => {
-  try {
-    const { projectId, docType } = req.params;
-    const results = await genericServices.getRecordsByMultipleConditions('documents', ['file_path'], { project_id: projectId, doc_type: docType });
-    if (!results || results.length === 0) {
-      return res.status(404).json({ error: 'Document not found' });
-    }
-    res.json({ file_path: results[0].file_path });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error retrieving Google Doc');
-  }
-});
-
-// Add new document to stage
+// Creates a new Google Doc for a stage, saves it in DB, and returns info about the new document
 router.post('/:stageId/create', authenticateToken, async (req, res) => {
   try {
     const { title, projectId, docType, docVersion, uploadedBy } = req.body;
@@ -442,8 +437,7 @@ router.post('/:stageId/create', authenticateToken, async (req, res) => {
     }
   }
 });
-
-// Delete doc by ID
+// Deletes a Google Doc by docId and removes its record from the DB
 router.delete('/:docId', authenticateToken, async (req, res) => {
   try {
     const docId = req.params.docId;
@@ -455,7 +449,5 @@ router.delete('/:docId', authenticateToken, async (req, res) => {
     res.status(500).send('Error deleting Google Doc');
   }
 });
-
-
 
 module.exports = router;
