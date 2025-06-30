@@ -13,10 +13,8 @@ router.get('/:agentName', authenticateToken, async (req, res) => {
     if (!agent) {
       return res.status(404).json({ error: 'Agent not found' });
     }
-
     const agentId = agent.user_id;
-
-    const agentProjects = await genericServices.getAllRecordsByColumn('projects', 'owner_user_id', agentId);
+    const agentProjects = await genericServices.getAllRecordsByColumns({ tableName: 'projects', columnsObj: { owner_user_id: agentId} });
     console.log("allAgentProjects:", agentProjects);
 
     res.status(200).json(agentProjects);

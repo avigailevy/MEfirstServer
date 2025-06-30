@@ -8,7 +8,7 @@ router.get('/:projectId/summaries', authenticateToken, async (req, res) => {
     try {
         const { projectId } = req.params;
         // קבלת כל הסיכומים עבור הפרוייקט
-        const summaries = await genericServices.getAllRecordsByColumn('summaries', 'project_id', projectId);
+        const summaries = await genericServices.getAllRecordsByColumns({ tableName: 'summaries', columnsObj: { project_id: projectId} });
         // מיון הסיכומים לפי מזהה (ID)
         summaries.sort((a, b) => b.summary_id - a.summary_id);
         res.json(summaries);

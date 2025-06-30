@@ -21,7 +21,7 @@ router.get('/stage2/criteria/types', authenticateToken, async (req, res) => {
 // Returns all criteria for a specific project
 router.get('/:stage/criteria', authenticateToken, async (req, res) => {
     try {
-        const criteria = await genericServices.getAllRecordsByColumn('criteria', 'project_id', req.params.project_id);
+        const criteria = await genericServices.getAllRecordsByColumns({ tableName: 'criteria', columnsObj: { project_id:  req.params.project_id} });
         res.json(criteria);
     } catch (err) {
         res.status(500).json({ error: err.message });

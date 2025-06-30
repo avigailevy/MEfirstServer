@@ -16,13 +16,11 @@ router.get('/', authenticateToken, async (req, res) => {
         } else {
             return res.status(400).json({ error: 'Invalid contact type' });
         }
-
-        const allContacts = await genericServices.getAllRecordsByColumn(
-            'contacts',
-            'contact_type',
-            customersOrSuppliers
+        const allContacts = await genericServices.getAllRecordsByColumns({
+            tableName: 'contacts',
+            columnsObj: { contact_type: customersOrSuppliers }
+        }
         );
-
         res.json(allContacts);
     } catch (err) {
         res.status(500).json({ error: err.message });

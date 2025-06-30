@@ -41,7 +41,7 @@ router.get('/userId/:userName', authenticateToken, async (req, res) => {
 // Returns all agents with role 'agent' - admin only
 router.get('/agents/all', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
-        const agents = await genericServices.getAllRecordsByColumn('users', 'role', 'agent');
+        const agents = await genericServices.getAllRecordsByColumns({ tableName: 'users', columnsObj: { role: 'agent'} });
         res.json(agents);
     } catch (err) {
         res.status(500).json({ error: err.message });

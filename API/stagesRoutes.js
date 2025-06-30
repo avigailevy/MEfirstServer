@@ -7,7 +7,7 @@ const router = express.Router({ mergeParams: true });
 router.get('/:project_id', authenticateToken, async (req, res) => {
   try {
     const { project_id } = req.params;
-    const stages = await genericServices.getAllRecordsByColumn('stages', "project_id", project_id);
+    const stages = await genericServices.getAllRecordsByColumns({ tableName: 'stages', columnsObj: { project_id: project_id } });
     res.json(stages);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
@@ -34,7 +34,7 @@ router.get('/next/:project_id', authenticateToken, async (req, res) => {
   try {
     const { stage_id } = req.params.stage_id;
     // Get all stages for the project, ordered by stage_id
-    const stages = await genericServices.getAllRecordsByColumn('stages', 'project_id', { project_id });
+    const stages = await genericServices.getAllRecordsByColumns({ tableName: 'stages', columnsObj: { stage_id: stage_id } });
     // Sort by stage_id (assuming it's numeric)
     stages.sort((a, b) => a.stage_id - b.stage_id);
     // Find the last completed stage

@@ -7,7 +7,7 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 router.get('/', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const todos = await genericServices.getAllRecordsByColumn('todos', 'to_user_id', userId);
+        const todos = await genericServices.getAllRecordsByColumns({ tableName: 'todos', columnsObj: { to_user_id: userId } });
         res.json(todos);
     } catch (err) {
         res.status(500).json({ error: err.message });

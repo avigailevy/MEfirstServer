@@ -29,7 +29,7 @@ router.get('/:category/:productId', authenticateToken, async (req, res) => {
 router.get('/:category/all', authenticateToken, async (req, res) => {
     try {
         const { category } = req.params;
-        const products = await genericServices.getAllRecordsByColumn('products', 'category', category);
+        const products = await genericServices.getAllRecordsByColumns({ tableName: 'products', columnsObj: { category: category } });
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: 'Database error', details: err.message });
