@@ -3,7 +3,7 @@ const genericServices = require('../Services/genericServices');
 const router = express.Router();
 const { authenticateToken } = require('./middlewares/authMiddleware');
 
-// GET /todos - כל הטודואים של המשתמש המחובר (userId מהטוקן)
+// Returns all todos for the logged-in user (to_user_id)
 router.get('/', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
@@ -13,32 +13,7 @@ router.get('/', authenticateToken, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// POST /todos - יצירת טודו חדש (userId מהטוקן)
-router.post('/', authenticateToken, async (req, res) => {
-    const { title, description = '', to_user_id, completed = false } = req.body;
-    const from_user_id = req.user.userId;
-
-    if (!title || !to_user_id) {
-        return res.status(400).json({ error: 'Missing required fields: title, to_user_id' });
-    }
-
-    try {
-        const newTodo = await genericServices.createRecord('todos', {
-            from_user_id,
-            to_user_id,
-            title,
-            description,
-            completed,
-        });
-        res.status(201).json(newTodo);
-    } catch (err) {
-        console.error("❌ Error creating todo:", err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// PUT /todos/:id - עדכון טודו (רק אם שייך למשתמש המחובר)
+// Updates a todo by id (only if it belongs to the logged-in user)
 router.put('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { title, description, completed, seen } = req.body;
@@ -67,9 +42,30 @@ router.put('/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// Creates a new todo (from the logged-in user to another user)
+router.post('/', authenticateToken, async (req, res) => {
+    const { title, description = '', to_user_id, completed = false } = req.body;
+    const from_user_id = req.user.userId;
 
+    if (!title || !to_user_id) {
+        return res.status(400).json({ error: 'Missing required fields: title, to_user_id' });
+    }
 
-// DELETE /todos/:id - מחיקת טודו (רק אם שייך למשתמש המחובר)
+    try {
+        const newTodo = await genericServices.createRecord('todos', {
+            from_user_id,
+            to_user_id,
+            title,
+            description,
+            completed,
+        });
+        res.status(201).json(newTodo);
+    } catch (err) {
+        console.error("❌ Error creating todo:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+// Deletes a todo by id (only if it belongs to the logged-in user)
 router.delete('/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -85,6 +81,5 @@ router.delete('/:id', authenticateToken, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 
 module.exports = router;
