@@ -1,8 +1,10 @@
 const express = require('express');
+const { google } = require('googleapis');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const googleDocsService = require('../services/googleServices/googleDocsService');
 const { drive } = require('../Services/googleServices/googleDrive');
+const  auth  = require('../Services/googleServices/googleAuth');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
@@ -14,7 +16,8 @@ async function getNextVersion(drive, folderId, docType) {
     fields: 'files(id, name)',
   });
 
-  const regex = new RegExp(`^${docType}_v(\\d+)$`);
+  // regex שמתאים לשמות שמתחילים ב־docType ואחריו כל תו כלשהו ואז _v ומספר
+  const regex = new RegExp(`^${docType}.*_v(\\d+)`);
   let maxVersion = 0;
   let latestFileId = null;
 
@@ -34,6 +37,7 @@ async function getNextVersion(drive, folderId, docType) {
     latestFileId,
   };
 }
+
 
 //פונקציה למציאת ID של תיקיה על פי שם ותיקיית אב
 async function findFolderIdByName(folderName, parentFolderId = null) {
@@ -87,9 +91,15 @@ async function getOriginalDocs(folderId) {
 router.post('/copy', authenticateToken, async (req, res) => {
   try {
     const { projectId, docType, stageId, userId } = req.body;
+    console.log('projectId:', projectId, typeof projectId);
+    console.log('docType:', docType, typeof docType);
+    console.log('stageId:', stageId, typeof stageId);
+    console.log('userId:', userId, typeof userId);
     if (!projectId || !docType || !stageId || !userId) {
       return res.status(400).json({ error: 'Missing parameters' });
     }
+
+
     const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
 
     // שלב 1: Projects → projectId → docType
