@@ -3,9 +3,8 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require('./middlewares/authMiddleware');
 
-
-//קבלת כל סוגי הקריטריונים הקיימים 
-router.get('/stage2/criteria/types', async (req, res) => {
+// Returns all available criterion types (static list)
+router.get('/stage2/criteria/types', authenticateToken, async (req, res) => {
     const criterionTypes = [
         'ProductDefinition',
         'Quantities',
@@ -19,9 +18,8 @@ router.get('/stage2/criteria/types', async (req, res) => {
     ];
     res.json(criterionTypes);
 });
-
-// קבלת כל הקריטריונים של פרויקט מסוים
-router.get('/:stage/criteria', async (req, res) => {
+// Returns all criteria for a specific project
+router.get('/:stage/criteria', authenticateToken, async (req, res) => {
     try {
         const criteria = await genericServices.getAllRecordsByColumn('criteria', 'project_id', req.params.project_id);
         res.json(criteria);
@@ -29,9 +27,8 @@ router.get('/:stage/criteria', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-// עדכון קריטריון קיים
-router.put('/:stage/criteria/:criterion_id', async (req, res) => {
+// Updates an existing criterion (info_accepted field) by criterion_id
+router.put('/:stage/criteria/:criterion_id', authenticateToken, async (req, res) => {
     try {
         let { info_accepted } = req.body;
         info_accepted = Boolean(info_accepted);
