@@ -4,7 +4,28 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 module.exports = router;
 
-// עדכון רשימת המוצרים בפרויקט
+// Returns all products for a specific project
+router.get('/:projectId/products', authenticateToken, async (req, res) => {
+    const { projectId } = req.params;
+    try {
+        // 1. שליפת product_ids מטבלת הקשר
+        const projectProducts = await genericServices.getAllRecordsByColumn('project_products', 'project_id', projectId);
+        const productIds = projectProducts.map(pp => pp.product_id);
+
+        if (productIds.length === 0) {
+            return res.json([]);
+        }
+
+        // 2. שליפת המוצרים לפי המזהים
+        const products = await genericServices.getRecordsWhereIn('products', 'product_id', productIds);
+
+        res.json(products);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch products' });
+    }
+});
+// Updates the list of products for a specific project
 router.put('/:projectId/products', authenticateToken, async (req, res) => {
     const { projectId } = req.params;
     const { productIds } = req.body;
@@ -31,23 +52,4 @@ router.put('/:projectId/products', authenticateToken, async (req, res) => {
     }
 });
 
-router.get('/:projectId/products', authenticateToken, async (req, res) => {
-    const { projectId } = req.params;
-    try {
-        // 1. שליפת product_ids מטבלת הקשר
-        const projectProducts = await genericServices.getAllRecordsByColumn('project_products', 'project_id', projectId);
-        const productIds = projectProducts.map(pp => pp.product_id);
-
-        if (productIds.length === 0) {
-            return res.json([]);
-        }
-
-        // 2. שליפת המוצרים לפי המזהים
-        const products = await genericServices.getRecordsWhereIn('products', 'product_id', productIds);
-
-        res.json(products);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to fetch products' });
-    }
-});
+module.exports = router;
