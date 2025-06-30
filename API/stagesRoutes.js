@@ -3,9 +3,7 @@ const genericServices = require('../Services/genericServices');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const router = express.Router({ mergeParams: true });
 
-
-
-// קבלת כל השלבים של פרויקט מסוים
+// Returns all stages for a specific project
 router.get('/:project_id', authenticateToken, async (req, res) => {
   try {
     const { project_id } = req.params;
@@ -15,7 +13,7 @@ router.get('/:project_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stages for the project and user' });
   }
 });
-
+// Returns a specific stage by stage_id
 router.get('/display/:stage_id', authenticateToken, async (req, res) => {
   const { username, stage_id } = req.params;
   try {
@@ -31,7 +29,7 @@ router.get('/display/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stage' });
   }
 });
-// קבלת השלב הבא אחרי השלב האחרון שמושלם עבור פרוייקט מסויים
+// Returns the next stage after the last completed stage for a specific project
 router.get('/next/:project_id', authenticateToken, async (req, res) => {
   try {
     const { stage_id } = req.params.stage_id;
@@ -48,7 +46,7 @@ router.get('/next/:project_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch next stage' });
   }
 });
-
+// Updates the extend_stage_1 field for a specific stage by stage_id
 router.put('/:stage_id', authenticateToken, async (req, res) => {
   const { stage_id } = req.params.stage_id;
   const { extend_stage_1 } = req.body;
@@ -76,7 +74,7 @@ router.put('/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to update stage' });
   }
 });
-// עדכון שלב ספציפי לפי מזהה שלב
+// Updates the completed status (and completion date) for a specific stage by stage_id
 router.put('/completed/:stage_id', authenticateToken, async (req, res) => {
   try {
     const { stage_id } = req.params.stage_id;
@@ -95,4 +93,5 @@ router.put('/completed/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to update stage completion status' });
   }
 });
+
 module.exports = router;

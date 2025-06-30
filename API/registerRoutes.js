@@ -4,7 +4,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const {authenticateToken} = require("./middlewares/authMiddleware");
 
-// הרשמה (sign up)
+// Registers a new user (with hashed password); returns user_id and username if successful
 router.post('/addUser', authenticateToken, async (req, res) => {
     try {
         const { username, password, ...otherFields } = req.body;
