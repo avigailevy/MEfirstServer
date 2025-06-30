@@ -14,13 +14,13 @@ router.post('/', async (req, res) => {
     }
 
     // Step 1: Find the user in the users table by username
-    const user = await genericServices.getRecordByColumn('users', 'username', username);
+    const user = await genericServices.getRecordByColumns('users', { username: username });
     if (!user) {
       return res.status(401).json({ error: 'Invalid username' });
     }
 
     // Step 2: Retrieve the hashed password from the passwords table by user_id
-    const passwordRecord = await genericServices.getRecordByColumn('passwords', 'user_id', user.user_id);
+    const passwordRecord = await genericServices.getRecordByColumns('passwords', {user_id: user.user_id});
     if (!passwordRecord) {
       return res.status(401).json({ error: 'Invalid  password' });
     }

@@ -20,7 +20,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
     try {
-        const existingTodo = await genericServices.getRecordByColumn('todos', 'todo_id', id);
+        const existingTodo = await genericServices.getRecordByColumns('todos', { todo_id: id });
         if (!existingTodo) return res.status(404).json({ error: 'Todo not found' });
 
         // רק מי ששלח או קיבל את הטודו יכול לערוך אותו (תוכל לשנות את זה לפי הלוגיקה שלך)
@@ -71,7 +71,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
     try {
-        const existingTodo = await genericServices.getRecordByColumn('todos', 'todo_id', id);
+        const existingTodo = await genericServices.getRecordByColumns('todos', { todo_id: id });
         if (!existingTodo) return res.status(404).json({ error: 'Todo not found' });
         if (existingTodo.from_user_id !== userId) return res.status(403).json({ error: 'Unauthorized' });
 

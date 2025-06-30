@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
-const {authenticateToken} = require("./middlewares/authMiddleware");
+const { authenticateToken } = require("./middlewares/authMiddleware");
 
 // Registers a new user (with hashed password); returns user_id and username if successful
 router.post('/addUser', authenticateToken, async (req, res) => {
@@ -13,7 +13,7 @@ router.post('/addUser', authenticateToken, async (req, res) => {
         }
 
         // בדוק אם המשתמש כבר קיים
-        const existing = await genericServices.getRecordByColumn('users', 'username', username);
+        const existing = await genericServices.getRecordByColumns('users', { username: username });
         if (existing) {
             return res.status(409).json({ error: 'Username already exists' });
         }

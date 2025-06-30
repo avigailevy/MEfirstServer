@@ -17,7 +17,7 @@ router.get('/:project_id', authenticateToken, async (req, res) => {
 router.get('/display/:stage_id', authenticateToken, async (req, res) => {
   const { username, stage_id } = req.params;
   try {
-    const stage = await genericServices.getRecordByColumn('stages', 'stage_id', stage_id);
+    const stage = await genericServices.getRecordByColumns('stages', { stage_id: stage_id });
     if (!stage) {
       return res.status(404).json({ error: 'Stage not found' });
     }

@@ -32,7 +32,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/contactName/:contact_id', authenticateToken, async (req, res) => {
     try {
         const { contact_id } = req.params;
-        const contact = await genericServices.getRecordByColumn('contacts', 'contact_id', contact_id);
+        const contact = await genericServices.getRecordByColumns('contacts', { contact_id: contact_id });
         if (!contact) {
             return res.status(404).json({ error: 'contact not found.' });
         }
@@ -103,7 +103,7 @@ router.post('/add/:contact_name', authenticateToken, async (req, res) => {
         const { username, customersOrSupliers, contact_name } = req.params;
 
         //  מציאת ה-user_id לפי שם המשתמש
-        const user = await genericServices.getRecordByColumn('users', 'username', username);
+        const user = await genericServices.getRecordByColumns('users', { username: username });
 
         if (!user) {
             return res.status(404).json({ error: 'User not found.' });

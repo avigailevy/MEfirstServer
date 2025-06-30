@@ -9,7 +9,7 @@ router.get('/:agentName', authenticateToken, async (req, res) => {
   try {
     const { agentName } = req.params;
 
-    const agent = await genericServices.getRecordByColumn('users', 'username', agentName);
+    const agent = await genericServices.getRecordByColumns('users', { username: agentName });
     if (!agent) {
       return res.status(404).json({ error: 'Agent not found' });
     }
@@ -73,7 +73,7 @@ router.get('/single/:projectId', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const project = await genericServices.getRecordByColumns('projects', {
       'project_id': projectId
-      
+
     });
 
     if (!project) {
@@ -130,11 +130,7 @@ router.put('/:projectId',
       }
 
       // Fetch the project by ID and username
-      const project = await genericServices.getRecordByColumn(
-        "projects",
-        "project_id",
-        req.params.projectId
-      );
+      const project = await genericServices.getRecordByColumns("projects", { project_id: req.params.projectId });
       if (!project) {
         return res.status(404).json({ error: 'Project not found for this user.' });
       }

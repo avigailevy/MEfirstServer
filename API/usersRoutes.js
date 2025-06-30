@@ -16,7 +16,7 @@ router.get('/', authenticateToken, authorizeRoles('admin'), async (req, res) => 
 router.get('/userName/:user_id', authenticateToken, async (req, res) => {
     try {
         const { user_id } = req.params;
-        const user = await genericServices.getRecordByColumn('users', 'user_id', user_id);
+        const user = await genericServices.getRecordByColumns('users', { user_id: user_id });
         if (!user) {
             return res.status(404).json({ error: 'user not found.' });
         }
@@ -29,7 +29,7 @@ router.get('/userName/:user_id', authenticateToken, async (req, res) => {
 router.get('/userId/:userName', authenticateToken, async (req, res) => {
     try {
         const { userName } = req.params;
-        const user = await genericServices.getRecordByColumn('users', 'username', userName);
+        const user = await genericServices.getRecordByColumns('users', { username: userName });
         if (!user) {
             return res.status(404).json({ error: 'user not found.' });
         }
@@ -68,7 +68,7 @@ router.put('/update/:agentId', authenticateToken, async (req, res) => {
 router.delete('/delete/:agentId', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
         const agentId = req.params.agentId;
-        const result = await genericServices.getRecordByColumn('users', 'user_id', agentId);
+        const result = await genericServices.getRecordByColumns('users', { user_id: agentId });
         if (!result) {
             return res.status(404).json({ error: 'Agent not found' });
         }

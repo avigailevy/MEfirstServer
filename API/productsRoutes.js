@@ -1,22 +1,22 @@
 const express = require('express');
 const genericServices = require('../Services/genericServices');
 const router = express.Router();
-const {authenticateToken} = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 
 // Returns all products
 router.get('/', authenticateToken, async (req, res) => {
-  try {
-    const products = await genericServices.getAllRecords('products');
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: 'Database error', details: err.message });
-  }
+    try {
+        const products = await genericServices.getAllRecords('products');
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: 'Database error', details: err.message });
+    }
 });
 // Returns a specific product by category and productId
-router.get('/:category/:productId',authenticateToken, async (req, res) => {
+router.get('/:category/:productId', authenticateToken, async (req, res) => {
     try {
         const { productId } = req.params;
-        const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
+        const product = await genericServices.getRecordByColumns('products', { product_id: productId });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -26,7 +26,7 @@ router.get('/:category/:productId',authenticateToken, async (req, res) => {
     }
 });
 // Returns all products in a specific category
-router.get('/:category/all',authenticateToken, async (req, res) => {
+router.get('/:category/all', authenticateToken, async (req, res) => {
     try {
         const { category } = req.params;
         const products = await genericServices.getAllRecordsByColumn('products', 'category', category);
@@ -36,10 +36,10 @@ router.get('/:category/all',authenticateToken, async (req, res) => {
     }
 });
 // Returns a specific product by productId
-router.get('/:productId', authenticateToken, async (req, res) => {    
+router.get('/:productId', authenticateToken, async (req, res) => {
     try {
         const { productId } = req.params;
-        const product = await genericServices.getRecordByColumn('products', 'product_id', productId);
+        const product = await genericServices.getRecordByColumns('products', { product_id: productId });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -78,7 +78,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Deletes a product by productId
 router.delete('/:productId', authenticateToken, async (req, res) => {
     try {
-        const { username,productId } = req.params;
+        const { username, productId } = req.params;
         await genericServices.deleteRecord('products', 'product_id', productId);
         const deleted = true;
         if (!deleted) {
