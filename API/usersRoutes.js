@@ -41,7 +41,7 @@ router.get('/userId/:userName', authenticateToken, async (req, res) => {
 // Returns all agents with role 'agent' - admin only
 router.get('/agents/all', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
-        const agents = await genericServices.getAllRecordsByColumns({ tableName: 'users', columnsObj: { role: 'agent'} });
+        const agents = await genericServices.getAllRecordsByColumns({ tableName: 'users', columnsObj: { role: 'agent' } });
         res.json(agents);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -60,6 +60,38 @@ router.put('/update/:agentId', authenticateToken, async (req, res) => {
         } else {
             res.status(404).json({ error: 'Agent not found' });
         }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+// Adds a new user with role 'agent' - admin only
+router.post('/addAgent', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+    try {
+        const { username } = req.params;
+        const { password, ...otherFields } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
+        // Check if the user already exists
+        const existing = await genericServices.getRecordByColumns('users', { username });
+        if (existing) {
+            return res.status(409).json({ error: 'Username already exists' });
+        }
+
+        // Hash the password
+        const bcrypt = require('bcrypt');
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create the new agent
+        const newAgent = await genericServices.createRecord('users', {
+            username,
+            password: hashedPassword,
+            role: 'agent',
+            ...otherFields
+        });
+
+        res.status(201).json({ user_id: newAgent.user_id, username: newAgent.username, role: newAgent.role });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
