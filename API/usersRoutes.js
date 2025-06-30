@@ -65,13 +65,13 @@ router.get('/userName/:user_id', authenticateToken, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'user not found.' });
         }
-        res.json({ username: user.username });
+        res.json({ user_name: user.username });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-//get a user name by the user_id
+//get a user_id by the user name
 router.get('/userId/:userName', authenticateToken, async (req, res) => {
     try {
         const { userName } = req.params;
@@ -79,7 +79,7 @@ router.get('/userId/:userName', authenticateToken, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'user not found.' });
         }
-        res.json({ username: user.user_id });
+        res.json({ user_id: user.user_id });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
