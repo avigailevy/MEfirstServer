@@ -2,11 +2,9 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
-const { authenticateToken, authorizeRoles } = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 
-
-
-//ניתוב שמחזיר את כל הפרוייקטים של סוכן מסויים=עבור הADMIN
+// Returns all projects for a specific agent (for admin)
 router.get('/:agentName', authenticateToken, async (req, res) => {
   try {
     const { agentName } = req.params;
@@ -27,8 +25,7 @@ router.get('/:agentName', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
+// Returns all projects by status (open/close), filtered by user role (admin sees all, user sees own)
 router.get('/:projectStatus/all', authenticateToken, async (req, res) => {
   try {
     const { projectStatus } = req.params;
@@ -68,39 +65,7 @@ router.get('/:projectStatus/all', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
-//get recent projects
-router.get('/recent', authenticateToken, async (req, res) => {
-  try {
-    const user_id = req.user.user_id;
-
-    const recentProjects = await genericServices.getAllRecordsByColumns({
-      tableName: 'projects',
-      columnsObj: { owner_user_id: user_id }, // ⬅️ שונה לשם הנכון
-      orderBy: 'last_visit_time',
-      limit: 4
-    });
-
-    res.json(recentProjects);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.put('/:project_id/visit', authenticateToken, async (req, res) => {
-  try {
-    const { project_id } = req.params;
-    await genericServices.updateRecord('projects', 'project_id', project_id, {
-      last_visit_time: new Date()
-    });
-    res.sendStatus(204);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /:username/projects/:projectId
+// Returns a single project by projectId
 router.get('/single/:projectId', authenticateToken, async (req, res) => {
 
   try {
@@ -121,11 +86,36 @@ router.get('/single/:projectId', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch project' });
   }
 });
+// Returns the 4 most recent projects for the current user
+router.get('/recent', authenticateToken, async (req, res) => {
+  try {
+    const user_id = req.user.user_id;
 
+    const recentProjects = await genericServices.getAllRecordsByColumns({
+      tableName: 'projects',
+      columnsObj: { owner_user_id: user_id }, // ⬅️ שונה לשם הנכון
+      orderBy: 'last_visit_time',
+      limit: 4
+    });
 
-
-
-// Update a project by username and status (open or closed)
+    res.json(recentProjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Updates the last visit time for a project
+router.put('/visit/:project_id', authenticateToken, async (req, res) => {
+  try {
+    const { project_id } = req.params;
+    await genericServices.updateRecord('projects', 'project_id', project_id, {
+      last_visit_time: new Date()
+    });
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// Updates a project by projectId (status must match open/close group)
 router.put('/:projectId',
 
   async (req, res) => {
@@ -173,39 +163,7 @@ router.put('/:projectId',
     }
   }
 );
-
-router.delete('/:projectId', async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    if (!projectId) {
-      return res.status(400).json({ error: 'Missing project_id' });
-    }
-    await genericServices.deleteRecord('projects', 'project_id', projectId);
-    res.status(200).json({ message: 'Project deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.get('/:projectId/:currentStage/getFile_path', async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    if (!projectId) {
-      return res.status(400).json({ error: 'Missing project_id' });
-    }
-
-    const document = await genericServices.getRecordByColumns(
-      'documents',
-      {
-        project_id: projectId,
-
-      }
-    )
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+// Creates a new project (with status open/close) and its default stages
 router.post('/:projectStatus', authenticateToken, async (req, res) => {
   //מתבצע בשרת כדי שלא יהיו כפילויות במקרה של עבודה בשני מחשבים במקביל
   try {
@@ -276,7 +234,18 @@ router.post('/:projectStatus', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
+// Deletes a project by projectId
+router.delete('/:projectId', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    if (!projectId) {
+      return res.status(400).json({ error: 'Missing project_id' });
+    }
+    await genericServices.deleteRecord('projects', 'project_id', projectId);
+    res.status(200).json({ message: 'Project deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
