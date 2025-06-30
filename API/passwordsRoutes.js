@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const { hashPassword } = require('../Services/cryptServices');
-const {authenticateToken} = require('./middlewares/authMiddleware');
+const { authenticateToken } = require('./middlewares/authMiddleware');
 
 // Update a password
 router.put('/update', authenticateToken, async (req, res) => {
@@ -28,8 +28,11 @@ router.put('/update', authenticateToken, async (req, res) => {
 });
 // Create a new password
 router.post('/new', authenticateToken, async (req, res) => {
+
     try {
         const { user_id, password } = req.body;
+        console.log('id', user_id);
+        console.log('pas', password);
         if (!user_id || !password) {
             return res.status(400).json({ error: 'user_id and password are required' });
         }
@@ -38,8 +41,7 @@ router.post('/new', authenticateToken, async (req, res) => {
         // שמירת הרשומה בטבלה
         const passwordRecord = await genericServices.createRecord('passwords', {
             user_id,
-            password_hash,
-            password_salt
+            password_hash
         });
         res.status(201).json(passwordRecord);
     } catch (err) {

@@ -1,9 +1,26 @@
-const express = require('express');
-const router = express.Router({ mergeParams: true });
+const router = require('express').Router({ mergeParams: true });
 const genericServices = require('../Services/genericServices');
 const { countRecords } = require('../Services/methodServices');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 
+// Returns the 4 most recent projects for the current user
+router.get('/recent', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;  // מזהה משתמש
+    console.log("Fetching recent projects for userId:", userId);
+    
+    const recentProjects = await genericServices.getAllRecordsByColumns({
+      tableName: 'projects',
+      columnsObj: { owner_user_id: userId },  // משתמשים ב-ID
+      orderBy: 'last_visit_time',
+      limit: 4
+    });
+
+    res.json(recentProjects);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Returns all projects for a specific agent (for admin)
 router.get('/:agentName', authenticateToken, async (req, res) => {
   try {
@@ -14,7 +31,7 @@ router.get('/:agentName', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Agent not found' });
     }
     const agentId = agent.user_id;
-    const agentProjects = await genericServices.getAllRecordsByColumns({ tableName: 'projects', columnsObj: { owner_user_id: agentId} });
+    const agentProjects = await genericServices.getAllRecordsByColumns({ tableName: 'projects', columnsObj: { owner_user_id: agentId } });
     console.log("allAgentProjects:", agentProjects);
 
     res.status(200).json(agentProjects);
@@ -82,23 +99,6 @@ router.get('/single/:projectId', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching project:', error);
     res.status(500).json({ error: 'Failed to fetch project' });
-  }
-});
-// Returns the 4 most recent projects for the current user
-router.get('/recent', authenticateToken, async (req, res) => {
-  try {
-    const user_id = req.user.user_id;
-
-    const recentProjects = await genericServices.getAllRecordsByColumns({
-      tableName: 'projects',
-      columnsObj: { owner_user_id: user_id }, // ⬅️ שונה לשם הנכון
-      orderBy: 'last_visit_time',
-      limit: 4
-    });
-
-    res.json(recentProjects);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 // Updates the last visit time for a project

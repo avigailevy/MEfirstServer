@@ -1,6 +1,5 @@
-const express = require('express');
-const router = express.Router();
 const genericServices = require('../Services/genericServices');
+const router = require('express').Router({ mergeParams: true });
 const { authenticateToken, authorizeRoles } = require("./middlewares/authMiddleware");
 
 // Returns all agents (users) - admin only
@@ -67,36 +66,36 @@ router.put('/update/:agentId', authenticateToken, async (req, res) => {
 // Adds a new user with role 'agent' - admin only
 router.post('/addAgent', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
-        const { username } = req.params;
-        const { password, ...otherFields } = req.body;
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+        console.log('Received request to add agent:', req.body);
+
+        const { username, ...otherFields } = req.body;
+
+        if (!username) {
+            console.log('Username is missing in request body');
+            return res.status(400).json({ error: 'Username is required' });
         }
 
-        // Check if the user already exists
         const existing = await genericServices.getRecordByColumns('users', { username });
         if (existing) {
+            console.log('Username already exists:', username);
             return res.status(409).json({ error: 'Username already exists' });
         }
 
-        // Hash the password
-        const bcrypt = require('bcrypt');
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create the new agent
         const newAgent = await genericServices.createRecord('users', {
             username,
-            password: hashedPassword,
             role: 'agent',
             ...otherFields
         });
 
+        console.log('New agent created:', newAgent);
+
         res.status(201).json({ user_id: newAgent.user_id, username: newAgent.username, role: newAgent.role });
+
     } catch (err) {
+        console.error('Error adding agent:', err);
         res.status(500).json({ error: err.message });
     }
 });
-// Deletes a specific agent by agentId - admin only
 router.delete('/delete/:agentId', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
         const agentId = req.params.agentId;
