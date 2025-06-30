@@ -9,7 +9,16 @@ router.get('/:projectId/products', authenticateToken, async (req, res) => {
     const { projectId } = req.params;
     try {
         // 1. שליפת product_ids מטבלת הקשר
-        const projectProducts = await genericServices.getAllRecordsByColumn('project_products', 'project_id', projectId);
+        const projectProducts = await genericServices.getAllRecordsByColumns({
+            tableName: 'project_products',
+            columnsObj: { project_id: projectId }
+        });
+
+        if (!Array.isArray(projectProducts)) {
+            console.error("projectProducts אינו מערך:", projectProducts);
+            return res.status(500).json({ error: "Internal error - projectProducts is not array" });
+        }
+
         const productIds = projectProducts.map(pp => pp.product_id);
 
         if (productIds.length === 0) {
