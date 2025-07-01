@@ -21,7 +21,7 @@ app.use("/:username/stages", require("./API/stagesRoutes"));
 app.use("/:username/project_products", require("./API/project_productsRoutes"));
 app.use("/:username/projects", require("./API/projectsRoutes"));
 app.use("/:username/:project_id/criteria", require("./API/criteriaRoutes"));
-app.use("/:username/:project_id/summaries", require("./API/summariesRoutes"));
+app.use("/:username/summaries", require("./API/summariesRoutes"));
 app.use("/:username/todos", require("./API/todosRoutes"));
 app.use("/login", require("./API/loginRoutes"));
 app.use("/:username/register", require("./API/registerRoutes"));
