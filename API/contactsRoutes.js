@@ -42,7 +42,7 @@ router.get('/contactName/:contact_id', authenticateToken, async (req, res) => {
 // Updates a contact by username, type (customer/supplier), and contact name (Admin only)
 router.put('/update/:contact_name', authenticateToken, async (req, res) => {
     try {
-        const { username, customersOrSupliers, contact_name } = req.params;
+const { username, customersOrSuppliers, contact_name } = req.params;
         const updateData = req.body;
 
         // בדוק אם המשתמש קיים ומה ה-ROLE שלו
@@ -50,12 +50,9 @@ router.put('/update/:contact_name', authenticateToken, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: 'User not found.' });
         }
-        if (user.role !== 'Admin') {
-            return res.status(403).json({ error: 'Permission denied. Only Admin can update contacts.' });
-        }
-
+     
         // מצא את איש הקשר לפי user_id, contact_name ו-type
-        const contact = await genericServices.getRecordByColumns('contacts', { user_id: user.user_id, contact_name, contact_type: customersOrSupliers });
+        const contact = await genericServices.getRecordByColumns('contacts', { user_id: user.user_id, contact_name, contact_type: customersOrSuppliers });
         if (!contact) {
             return res.status(404).json({ error: 'Contact not found for this user and type.' });
         }
@@ -95,10 +92,12 @@ router.put('/update/:contact_name', authenticateToken, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-// Adds a new contact by username, type (customer/supplier), and contact name, or updates type if already exists
+
+
+// // Adds a new contact by username, type (customer/supplier), and contact name, or updates type if already exists
 router.post('/add/:contact_name', authenticateToken, async (req, res) => {
     try {
-        const { username, customersOrSupliers, contact_name } = req.params;
+        const { username, customersOrSuppliers, contact_name } = req.params;
 
         //  מציאת ה-user_id לפי שם המשתמש
         const user = await genericServices.getRecordByColumns('users', { username: username });
@@ -110,11 +109,11 @@ router.post('/add/:contact_name', authenticateToken, async (req, res) => {
         const user_id = user.user_id;
 
         // בדוק אם איש הקשר כבר קיים עם אותו user_id וcontact_name
-        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name, contact_type: customersOrSupliers });
+        const existingContact = await genericServices.getRecordByColumns('contacts', { user_id, contact_name, contact_type: customersOrSuppliers });
 
         if (existingContact) {
             // אם הסוג שונה מהסוג הקיים, שנה ל-OTHER
-            if (existingContact.contact_type !== customersOrSupliers) {
+            if (existingContact.contact_type !== customersOrSuppliers) {
                 await genericServices.updateRecord(
                     'contacts',
                     'contact_id',
@@ -128,12 +127,13 @@ router.post('/add/:contact_name', authenticateToken, async (req, res) => {
         }
 
         // אם לא קיים, הוסף איש קשר חדש
-        const newContact = await genericServices.createRecord('contacts', { user_id, contact_name, contact_type: customersOrSupliers });
+        const newContact = await genericServices.createRecord('contacts', { user_id, contact_name, contact_type: customersOrSuppliers });
         res.status(201).json(newContact);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 // Deletes a contact by username, type (customer/supplier), and contact name, or changes type if needed
 router.delete('/delete/:contact_name', authenticateToken, async (req, res) => {
     try {
