@@ -88,10 +88,29 @@ async function findOrCreateFolder(drive, name, parentId = null) {
   return folder.data.id;
 }
 
+async function deleteFolderByName(folderName) {
+  const drive = google.drive({ version: 'v3', auth });
+
+  // 1. חיפוש תיקייה לפי שם
+  const res = await drive.files.list({
+    q: `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    fields: 'files(id, name)'
+  });
+
+  const folders = res.data.files;
+  if (!folders.length) throw new Error('Folder not found');
+
+  // 2. מחיקה של כל התיקיות שנמצאו בשם הזה (יכול להיות יותר מאחת)
+  for (const folder of folders) {
+    await drive.files.delete({ fileId: folder.id });
+  }
+}
+
 module.exports = {
   createGoogleDoc,
   deleteGoogleDoc,
   createFolder,
   createProjectStructure,
-  findOrCreateFolder
+  findOrCreateFolder,
+  deleteFolderByName
 };

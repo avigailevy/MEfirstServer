@@ -6,12 +6,12 @@ const { authenticateToken } = require('./middlewares/authMiddleware');
 // Returns the 4 most recent projects for the current user
 router.get('/recent', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId;  // מזהה משתמש
+    const userId = req.user.userId;
     console.log("Fetching recent projects for userId:", userId);
-    
+
     const recentProjects = await genericServices.getAllRecordsByColumns({
       tableName: 'projects',
-      columnsObj: { owner_user_id: userId },  // משתמשים ב-ID
+      columnsObj: { owner_user_id: userId },
       orderBy: 'last_visit_time',
       limit: 4
     });
@@ -21,6 +21,7 @@ router.get('/recent', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // Returns all projects for a specific agent (for admin)
 router.get('/:agentName', authenticateToken, async (req, res) => {
   try {
@@ -48,9 +49,9 @@ router.get('/:projectStatus/all', authenticateToken, async (req, res) => {
 
     let status;
     if (projectStatus === 'open') {
-      status = ['on hold', 'live project'];
+      status = [ 'live project'];
     } else if (projectStatus === 'close') {
-      status = ['closed'];
+      status = ['on hold','closed'];
     } else {
       return res.status(400).json({ error: 'Invalid status parameter' });
     }
@@ -113,6 +114,21 @@ router.put('/visit/:project_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.put('/onHold/:projectId', authenticateToken, async (req, res) => {
+  try {
+    const projectId = req.params.projectId;
+    const updatedFields = req.body;
+
+    const project = await genericServices.getRecordByColumns("projects", { project_id: projectId });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+
+    const updated = await genericServices.updateRecord('projects', 'project_id', projectId, updatedFields);
+    res.json({ success: true, updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Updates a project by projectId (status must match open/close group)
 router.put('/:projectId',
 
@@ -157,6 +173,8 @@ router.put('/:projectId',
     }
   }
 );
+
+
 // Creates a new project (with status open/close) and its default stages
 router.post('/:projectStatus', authenticateToken, async (req, res) => {
   //מתבצע בשרת כדי שלא יהיו כפילויות במקרה של עבודה בשני מחשבים במקביל
@@ -170,7 +188,7 @@ router.post('/:projectStatus', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid status parameter' });
     }
     const { project_name, status, supplier_id, customer_id } = req.body;
-    const owner_user_id = 215589318;
+    const owner_user_id =  req.user.userId; // נשלף מתוך ה־JWT
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -228,18 +246,18 @@ router.post('/:projectStatus', authenticateToken, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Deletes a project by projectId
-router.delete('/:projectId', async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    if (!projectId) {
-      return res.status(400).json({ error: 'Missing project_id' });
-    }
-    await genericServices.deleteRecord('projects', 'project_id', projectId);
-    res.status(200).json({ message: 'Project deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}); 
+ //Deletes a project by projectId
+ router.delete('/:projectId', async (req, res) => {
+   try {
+     const { projectId } = req.params;
+     if (!projectId) {
+       return res.status(400).json({ error: 'Missing project_id' });
+     }
+     await genericServices.deleteRecord('projects', 'project_id', projectId);
+     res.status(200).json({ message: 'Project deleted successfully' });
+   } catch (err) {
+     res.status(500).json({ error: err.message });
+   }
+ }); 
 
 module.exports = router;

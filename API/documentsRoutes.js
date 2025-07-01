@@ -397,7 +397,7 @@ router.post('/:projectId/upload/:docType', authenticateToken, upload.single('fil
     res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
   }
 });
-// Creates a new Google Doc for a stage, saves it in DB, and returns info about the new document
+// // Creates a new Google Doc for a stage, saves it in DB, and returns info about the new document
 router.post('/:stageId/create', authenticateToken, async (req, res) => {
   try {
     const { title, projectId, docType, docVersion, uploadedBy } = req.body;
@@ -436,6 +436,9 @@ router.post('/:stageId/create', authenticateToken, async (req, res) => {
     }
   }
 });
+
+
+//
 // Deletes a Google Doc by docId and removes its record from the DB
 router.delete('/:docId', authenticateToken, async (req, res) => {
   try {
