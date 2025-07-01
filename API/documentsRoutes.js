@@ -147,7 +147,7 @@ router.post('/copy', authenticateToken, async (req, res) => {
     const newDoc = {
       project_id: projectId,
       stage_id: stageId,
-      doc_type: 'RFQ',
+      doc_type: docType,
       doc_version: `v${nextVersion}`,
       file_path: `https://docs.google.com/document/d/${copyRes.data.id}/edit`,
       uploaded_by: userId
