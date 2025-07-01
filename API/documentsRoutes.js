@@ -4,7 +4,7 @@ const router = express.Router();
 const genericServices = require('../Services/genericServices');
 const googleDocsService = require('../services/googleServices/googleDocsService');
 const { drive } = require('../Services/googleServices/googleDrive');
-const  auth  = require('../Services/googleServices/googleAuth');
+const auth = require('../Services/googleServices/googleAuth');
 const { authenticateToken } = require('./middlewares/authMiddleware');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' }); // שמירה זמנית של קבצים בתיקיית uploads
@@ -153,7 +153,7 @@ router.post('/copy', authenticateToken, async (req, res) => {
       uploaded_by: userId
     };
 
-    const saveInDB = genericServices.createRecord('documents', newDoc);
+    const saveInDB = await genericServices.createRecord('documents', newDoc);
     if (saveInDB) {
       console.log('New document created in DB');
     }
