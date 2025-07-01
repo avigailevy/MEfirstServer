@@ -1,6 +1,5 @@
-const express = require('express');
 const { google } = require('googleapis');
-const router = express.Router();
+const router = require('express').Router({ mergeParams: true });
 const genericServices = require('../Services/genericServices');
 const googleDocsService = require('../services/googleServices/googleDocsService');
 const { drive } = require('../Services/googleServices/googleDrive');
@@ -325,7 +324,7 @@ router.post('/newFolder', authenticateToken, async (req, res) => {
 // Uploads a file to Google Drive under the project/docType folder, creates a new version, saves it in DB, and returns info about the uploaded file
 router.post('/:projectId/upload/:docType', authenticateToken, upload.single('file'), async (req, res) => {
   try {
-    const { projectId, docType } = req.params; // שליפת מזהי הפרויקט וסוג המסמך מהנתיב
+    const { username, projectId, docType } = req.params; // שליפת מזהי הפרויקט וסוג המסמך מהנתיב
     const filePath = req.file.path; // הנתיב הזמני של הקובץ שהועלה לשרת
     const originalName = path.parse(req.file.originalname).name; // שם הקובץ המקורי בלי סיומת
     const fileExt = path.extname(req.file.originalname); // הסיומת של הקובץ (.docx למשל)
