@@ -29,21 +29,20 @@ router.get('/display/:stage_id', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch stage' });
   }
 });
-// Returns the next stage after the last completed stage for a specific project
-router.get('/next/:project_id', authenticateToken, async (req, res) => {
+// Returns the amount of completed stages for a specific project
+router.get('/completed/:project_id', authenticateToken, async (req, res) => {
   try {
-    const { stage_id } = req.params.stage_id;
-    // Get all stages for the project, ordered by stage_id
-    const stages = await genericServices.getAllRecordsByColumns({ tableName: 'stages', columnsObj: { stage_id: stage_id } });
-    // Sort by stage_id (assuming it's numeric)
-    stages.sort((a, b) => a.stage_id - b.stage_id);
-    // Find the last completed stage
-    const lastCompletedIndex = stages.map(s => s.completed).lastIndexOf(true);
-    // The next stage is the one after the last completed
-    const nextStage = stages[lastCompletedIndex + 1] || null;
-    res.json(nextStage);
+    const { project_id } = req.params;
+
+    const completedStages = await genericServices.getAllRecordsByColumns({
+      tableName: 'stages',
+      columnsObj: { project_id, completed: 1 }, 
+    });
+
+    res.json({ completed: completedStages.length });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch next stage' });
+    console.error('Error fetching completed stages:', err);
+    res.status(500).json({ error: 'Failed to fetch completed stages' });
   }
 });
 // Updates the extend_stage_1 field for a specific stage by stage_id
