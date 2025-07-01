@@ -77,7 +77,7 @@ router.put('/:stage_id', authenticateToken, async (req, res) => {
 // Updates the completed status (and completion date) for a specific stage by stage_id
 router.put('/completed/:stage_id', authenticateToken, async (req, res) => {
   try {
-    const { stage_id } = req.params.stage_id;
+    const { stage_id } = req.params;
     const { completed } = req.body;
     const completion_date = completed ? new Date() : null;
 
